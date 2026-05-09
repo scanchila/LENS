@@ -1,4 +1,4 @@
-# `problem_finder` Implementation Plan
+# LENS Implementation Plan
 
 A buildable plan for the multi-agent problem-discovery system. The plan is structured as: framework decision → multi-agent role taxonomy → tool catalog → storage layer → full-loop architecture → framework abstraction interface → phased build plan → framework comparison.
 
@@ -401,7 +401,7 @@ class DirectAnthropicAdapter(AgentFramework):
 ### Configuration
 
 ```yaml
-# problem_finder.yaml
+# lens.yaml
 default_framework: claude_agent_sdk
 
 framework_assignments:

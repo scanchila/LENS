@@ -2,7 +2,7 @@
 
 The whole point of this layer is that the orchestrator never imports a
 specific framework. Switching from Claude Agent SDK to PI to LangGraph
-is config-only — see ``problem_finder.yaml`` for assignments.
+is config-only; see ``lens.yaml`` for assignments.
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ class FrameworkRegistry:
       3. Default framework (set with :meth:`set_default`)
 
     Adapters are registered once at startup; assignments come from the
-    application config (``problem_finder.yaml``).
+    application config (``lens.yaml``).
     """
 
     def __init__(self) -> None:

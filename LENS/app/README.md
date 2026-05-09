@@ -1,8 +1,8 @@
-# `problem_finder` — application
+# LENS application
 
 Multi-agent problem-discovery system. Architectural rationale lives one level up in `../IMPLEMENTATION_PLAN.md`. This README is a quick map of the codebase.
 
-The repository was bootstrapped from [`fastapi/full-stack-fastapi-template`](https://github.com/fastapi/full-stack-fastapi-template) on 2026-05-05; the example items CRUD has been stripped, and `problem_finder`-specific scaffolding has been layered on top.
+The repository was bootstrapped from [`fastapi/full-stack-fastapi-template`](https://github.com/fastapi/full-stack-fastapi-template) on 2026-05-05; the example items CRUD has been stripped, and LENS-specific scaffolding has been layered on top.
 
 ## Stack
 
@@ -60,7 +60,7 @@ app/
 | Repo scaffold (FastAPI template) | ✅ done | Items CRUD stripped, frontend item routes removed |
 | Custom Postgres image (pgvector + AGE) | ✅ done | `postgres-extensions/Dockerfile` |
 | MinIO service in compose | ✅ done | Console on `:9001`, S3 API on `:9000` |
-| Alembic migration for extensions + graph | ✅ done | `a1b2c3d4e5f6` — drops `item`, creates extensions, creates `problem_finder` AGE graph |
+| Alembic migration for extensions + graph | ✅ done | `a1b2c3d4e5f6` — drops `item`, creates extensions, creates `lens` AGE graph |
 | Backend dependencies | ✅ done | `pyproject.toml` updated |
 | Core agent framework types | ✅ done | `agents/types.py`, `tool.py`, `framework.py` |
 | FrameworkRegistry | ✅ done | Per-agent / per-role / default precedence |

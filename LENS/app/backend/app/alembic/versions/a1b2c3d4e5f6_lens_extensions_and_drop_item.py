@@ -5,7 +5,7 @@ Revises: fe56fa70289e
 Create Date: 2026-05-05
 
 This migration is the boundary between the upstream FastAPI template's
-schema and the problem_finder schema:
+schema and the LENS schema:
 
   1. Drops the legacy `item` table (the template's example CRUD)
   2. Asserts pgvector and Apache AGE extensions are available
@@ -13,7 +13,7 @@ schema and the problem_finder schema:
       them with this database via CREATE EXTENSION IF NOT EXISTS)
   3. Initializes the application's AGE graph
 
-Subsequent migrations build the problem_finder schema on top of this baseline.
+Subsequent migrations build the LENS schema on top of this baseline.
 """
 
 from alembic import op
@@ -26,7 +26,7 @@ branch_labels = None
 depends_on = None
 
 
-GRAPH_NAME = "problem_finder"
+GRAPH_NAME = "lens"
 
 
 def upgrade() -> None:

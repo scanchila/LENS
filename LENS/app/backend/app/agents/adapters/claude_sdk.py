@@ -45,7 +45,7 @@ from ..types import (
 )
 
 
-_MCP_SERVER_NAME = "problem_finder"
+_MCP_SERVER_NAME = "lens"
 
 
 class ClaudeAgentSDKAdapter(AgentFramework):

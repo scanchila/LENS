@@ -6,7 +6,7 @@ services:
     build:
       context: ./postgres-extensions
       dockerfile: Dockerfile
-    image: '${DOCKER_IMAGE_DB:-problem-finder-db}:${TAG-latest}'
+    image: '${DOCKER_IMAGE_DB:-lens-db}:${TAG-latest}'
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
