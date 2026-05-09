@@ -5,8 +5,15 @@ orchestrator at startup and selectively granted to agents via
 ``AgentDefinition.tool_names``.
 """
 
-from .ask_user import AskUserTool, UserPrompter
+from .ask_user import AskUserTool
 from .echo import EchoTool
-from .note import NoteEntry, NoteTool
+from .note import VALID_KINDS, InMemoryNoteSink, NoteSink, NoteTool
 
-__all__ = ["AskUserTool", "EchoTool", "NoteEntry", "NoteTool", "UserPrompter"]
+__all__ = [
+    "AskUserTool",
+    "EchoTool",
+    "InMemoryNoteSink",
+    "NoteSink",
+    "NoteTool",
+    "VALID_KINDS",
+]

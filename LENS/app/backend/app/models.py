@@ -153,3 +153,28 @@ class Embedding(SQLModel, table=True):
     )
     model: str = Field(sa_column=Column(String(128), nullable=False))
     vector: Any = Field(sa_column=Column(Vector(EMBEDDING_DIM), nullable=False))
+
+
+# ---------------------------------------------------------------------------
+# Agent runtime: persisted session notes (TICKET-041)
+# ---------------------------------------------------------------------------
+
+
+class SessionNote(SQLModel, table=True):
+    __tablename__ = "session_notes"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: uuid.UUID = Field(nullable=False, index=True)
+    agent_name: str = Field(sa_column=Column(Text, nullable=False))
+    # Validation against the supported enum lives in the note tool so the
+    # catalog can be extended without a migration; see app/agents/tools/note.py.
+    kind: str = Field(sa_column=Column(Text, nullable=False))
+    text: str = Field(sa_column=Column(Text, nullable=False))
+    payload: dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
