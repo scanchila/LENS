@@ -153,3 +153,51 @@ class Embedding(SQLModel, table=True):
     )
     model: str = Field(sa_column=Column(String(128), nullable=False))
     vector: Any = Field(sa_column=Column(Vector(EMBEDDING_DIM), nullable=False))
+
+
+# ---------------------------------------------------------------------------
+# CAR dossier integration (TICKET-045, TICKET-046)
+# ---------------------------------------------------------------------------
+
+
+class DossierJob(SQLModel, table=True):
+    """One row per CAR evidence_dossier ticket the orchestrator emits.
+
+    ``ticket_id`` is the frontmatter ``tkt_<hex>`` id (the durable handle
+    callers poll), not the filename's TICKET-NNNN number. ``status`` walks
+    queued -> ingested | failed. ``payload_hash`` is the hash of the parsed
+    dossier structure (sources URLs + claim texts + valences); the ingest
+    worker uses it as an idempotency key for re-runs of the same file.
+    """
+
+    __tablename__ = "dossier_jobs"
+
+    ticket_id: str = Field(sa_column=Column(Text, primary_key=True))
+    candidate_id: uuid.UUID = Field(nullable=False, index=True)
+    status: str = Field(
+        default="queued",
+        sa_column=Column(Text, nullable=False, server_default="queued"),
+    )
+    lens_attribution: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    ticket_path: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    dossier_path: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    payload_hash: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    error_message: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+    ingested_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=True,
+    )

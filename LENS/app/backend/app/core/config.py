@@ -75,6 +75,12 @@ class Settings(BaseSettings):
     MINIO_BUCKET_RAW_UPLOADS: str = "lens-raw"
     MINIO_REGION: str = "us-east-1"
 
+    # CAR integration (TICKET-045, TICKET-046)
+    # Path to the CAR ticket directory the queue tool writes into and the
+    # ingest worker watches. Resolved relative to the repo root for local
+    # dev; override via LENS_CAR_TICKET_DIR for tests or non-default mounts.
+    LENS_CAR_TICKET_DIR: str = "car-hub/lens/.codex-autorunner/tickets"
+
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     SMTP_PORT: int = 587

@@ -8,5 +8,13 @@ orchestrator at startup and selectively granted to agents via
 from .ask_user import AskUserTool, UserPrompter
 from .echo import EchoTool
 from .note import NoteEntry, NoteTool
+from .queue_evidence_dossier import QueueEvidenceDossierTool
 
-__all__ = ["AskUserTool", "EchoTool", "NoteEntry", "NoteTool", "UserPrompter"]
+__all__ = [
+    "AskUserTool",
+    "EchoTool",
+    "NoteEntry",
+    "NoteTool",
+    "QueueEvidenceDossierTool",
+    "UserPrompter",
+]
