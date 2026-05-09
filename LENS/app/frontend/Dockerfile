@@ -14,10 +14,10 @@ RUN bun install
 COPY ./frontend /app/frontend
 ARG VITE_API_URL
 
-RUN bun run build
+RUN bun run buildh
 
 
-# Stage 1, based on Nginx, to have only the compiled app, ready for production with Nginx
+# Stage 1, based on Nginx, to have only the compiled  app, ready for production with Nginx
 FROM nginx:1
 
 COPY --from=build-stage /app/frontend/dist/ /usr/share/nginx/html

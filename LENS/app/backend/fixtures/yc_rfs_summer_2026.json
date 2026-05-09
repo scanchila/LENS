@@ -1,66 +1,102 @@
 {
   "published_at": "2026-05-04",
-  "source": "https://www.ycombinator.com/rfs (curated for hackathon demo; replace with verbatim fetch before public use)",
+  "source": "https://www.ycombinator.com/rfs (Summer 2026 — verbatim from YC partner essays)",
   "items": [
     {
       "id": "rfs-001",
-      "title": "AI co-scientist tools",
-      "description": "Tools that act as research collaborators, not just retrievers — surface counter-evidence, run sub-experiments, manage citations.",
-      "tags": ["ai", "research"]
+      "title": "AI for Low-Pesticide Agriculture",
+      "description": "AI vision + sensors + robotics to identify and treat individual weeds and pests in real time. Microbes, peptides, and RNA-based solutions to replace synthetic chemicals. Reduce pesticide use and increase yields simultaneously.",
+      "tags": ["ai", "agriculture", "robotics", "biotech"]
     },
     {
       "id": "rfs-002",
-      "title": "Compliance copilots for SMBs",
-      "description": "Vertical compliance tooling for sub-$50M SMBs across verticals (healthcare, fintech, food service).",
-      "tags": ["fintech", "vertical-saas"]
+      "title": "AI-Native Discovery Engines",
+      "description": "Closed-loop scientific discovery systems that propose hypotheses, generate experiments, run automated labs, and iterate. Drug discovery, materials science, protein engineering — design-make-test-analyze loops driven by AI agents.",
+      "tags": ["ai", "research", "biotech"]
     },
     {
       "id": "rfs-003",
-      "title": "Real-time data quality for AI training",
-      "description": "Pipelines that surface and fix bad training data live; statistical drift, label leakage, silent corruption.",
-      "tags": ["ai-infra", "devtools"]
+      "title": "AI-Native Service Companies",
+      "description": "Companies that don't sell software — they sell the service itself, delivered by AI. Insurance brokerage, accounting/tax/audit, compliance, healthcare administration. Replace, not augment.",
+      "tags": ["ai", "services", "vertical"]
     },
     {
       "id": "rfs-004",
-      "title": "Voice-first ops for field workers",
-      "description": "Voice-only field workflows for trades and logistics. Hands-busy users; minimal-screen UX.",
-      "tags": ["ai", "vertical"]
+      "title": "AI Personalized Medicine",
+      "description": "Agent harnesses analyzing personal health data (genome, EHR, wearables, diagnostics) to deliver patient-specific suggestions and n-of-1 therapies via mRNA delivery. Cheap diagnostics + cheap personalized therapies + agent reasoning.",
+      "tags": ["ai", "healthcare", "biotech"]
     },
     {
       "id": "rfs-005",
-      "title": "Browser-native LLM agents",
-      "description": "Agents running locally in the browser with tab-level context. On-device inference closing the latency gap.",
-      "tags": ["ai", "browser"]
+      "title": "Company Brain",
+      "description": "Pull domain knowledge out of fragmented sources (heads, email, Slack, tickets, databases), structure it, keep it current, and turn it into an executable skills file for AI agents. The missing layer between raw company data and reliable AI automation.",
+      "tags": ["ai", "infra", "saas"]
     },
     {
       "id": "rfs-006",
-      "title": "Synthetic-data marketplaces",
-      "description": "Marketplaces for high-quality, licensed synthetic data; especially for regulated verticals.",
-      "tags": ["ai-infra", "data"]
+      "title": "Counter-Swarm Defense",
+      "description": "Counter-drone defense built like a real-time distributed system, not a weapons platform. High-capacity interceptors, sensor fusion, non-kinetic defenses (aerosols, streamers), attacks on the autonomy stack itself. Restore the cost advantage to defenders.",
+      "tags": ["defense", "robotics", "ai"]
     },
     {
       "id": "rfs-007",
-      "title": "Personal RAG for knowledge workers",
-      "description": "Private retrieval over a person's full document trail. Local-first; zero-server posture.",
-      "tags": ["ai", "productivity"]
+      "title": "Dynamic Software Interfaces",
+      "description": "Coding agents let users become their own forward-deployed engineers. Software ships shared primitives; users heavily customize the final interfaces. Rethinks delivery: source vs binaries, frontend modification, on-the-fly middleware.",
+      "tags": ["ai", "devtools", "ux"]
     },
     {
       "id": "rfs-008",
-      "title": "Provenance-first content pipelines",
-      "description": "Citations, confidence, and challenge by default. Compliance-grade writing workflows.",
-      "tags": ["ai", "media"]
+      "title": "Electronics in Space",
+      "description": "Inference chips for space — optimized for mass, thermal, and radiation. Massive new compute capacity in space driven by reusable rockets from SpaceX and Stoke Space.",
+      "tags": ["space", "hardware", "ai-infra"]
     },
     {
       "id": "rfs-009",
-      "title": "AI-native CRMs for studios",
-      "description": "Pipeline tools tuned to startup-studio workflows: deal-flow, opportunity briefs, partner review.",
-      "tags": ["saas", "vertical"]
+      "title": "Hardware Supply Chain",
+      "description": "Tools that close the iteration-speed gap between Shenzhen and the US. Faster part production, dense supplier networks, tight integration of design, manufacturing, and logistics.",
+      "tags": ["hardware", "manufacturing"]
     },
     {
       "id": "rfs-010",
-      "title": "Open-source agent observability",
-      "description": "Tracing, eval, and cost dashboards for agent runs. OSS by default; minimal vendor lock.",
-      "tags": ["ai-infra", "open-source"]
+      "title": "Industrial Capabilities in Space",
+      "description": "Industrial capabilities on the moon and in space: extracting raw materials (silicon, aluminum, iron, titanium) via electrolysis, 3D printing complex structures from molten regolith.",
+      "tags": ["space", "manufacturing"]
+    },
+    {
+      "id": "rfs-011",
+      "title": "Inference Chips for Agent Workflows",
+      "description": "Purpose-built silicon for agent loops: fast context switching between models, native speculative decoding, memory built for KV caches that persist across an entire execution graph. Compiler co-design.",
+      "tags": ["ai-infra", "hardware"]
+    },
+    {
+      "id": "rfs-012",
+      "title": "SaaS Challengers",
+      "description": "AI-native software replacing legacy SaaS. Clone-and-undercut, rebundle point solutions, AI-native rewrites of products with 10M+ line codebases (chip design, ERPs, industrial control, supply chain).",
+      "tags": ["saas", "ai"]
+    },
+    {
+      "id": "rfs-013",
+      "title": "Software for Agents",
+      "description": "Build for agents as first-class citizens: APIs, MCPs, CLIs, machine-readable docs that let agents discover, sign up, and instantly use tools without a human. Every major software category rebuilt for agents.",
+      "tags": ["ai-infra", "agents"]
+    },
+    {
+      "id": "rfs-014",
+      "title": "Startups That Want to Sell to Huge Companies",
+      "description": "Sell to Fortune 100 / biggest companies in the world. AI made it possible for 2-3 person teams to ship enterprise-grade products in months. Forward-thinking buyers at the largest customers want to talk.",
+      "tags": ["enterprise", "gtm"]
+    },
+    {
+      "id": "rfs-015",
+      "title": "Supply Chain 2.0 for Semiconductors",
+      "description": "Real-time allocation tracking, multi-tier risk monitoring, export compliance for 1,400-step chip supply chains. Replace spreadsheets/SAP/phone calls with deep wafer-allocation and packaging-aware tooling. CHIPS Act fabs need this.",
+      "tags": ["semiconductors", "supply-chain", "saas"]
+    },
+    {
+      "id": "rfs-016",
+      "title": "The AI Operating System for Companies",
+      "description": "Make a company queryable: every meeting, ticket, customer interaction captured into an intelligence layer that learns from it. Closed loop: monitor, compare to plan, adjust. The connective layer that makes a company legible to AI.",
+      "tags": ["ai", "saas", "infra"]
     }
   ]
 }

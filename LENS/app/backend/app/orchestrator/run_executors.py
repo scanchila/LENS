@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import textwrap
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -773,6 +774,463 @@ async def _exec_cross_domain_lens_real(
 
 
 # ---------------------------------------------------------------------------
+# Real mode — Codex-driven runs that update existing candidates
+# ---------------------------------------------------------------------------
+# Schema: the model returns a single JSON object with three keys:
+#   updates       — score adjustments to existing candidates
+#   kills         — candidates the new evidence falsifies
+#   new_candidates — fresh candidates surfaced by the new evidence
+# We feed the existing candidate list into the prompt as ground truth so
+# the model can rescore by id rather than restate.
+
+_UPDATE_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "required": ["updates", "kills", "new_candidates", "search_summary"],
+    "properties": {
+        "updates": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["candidate_id", "v_hat", "c_hat", "reason"],
+                "properties": {
+                    "candidate_id": {"type": "string"},
+                    "v_hat": {"type": "number"},
+                    "c_hat": {"type": "number"},
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "speculative",
+                            "supported",
+                            "challenged",
+                            "ready_to_validate",
+                        ],
+                    },
+                    "reason": {"type": "string"},
+                },
+            },
+        },
+        "kills": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["candidate_id", "reason"],
+                "properties": {
+                    "candidate_id": {"type": "string"},
+                    "reason": {"type": "string"},
+                },
+            },
+        },
+        "new_candidates": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "statement",
+                    "lens",
+                    "v_hat",
+                    "c_hat",
+                    "reason",
+                ],
+                "properties": {
+                    "statement": {"type": "string"},
+                    "lens": {
+                        "type": "string",
+                        "enum": [
+                            "cross_domain_transfer",
+                            "contradiction_surfacing",
+                            "distance_from_focus",
+                        ],
+                    },
+                    "v_hat": {"type": "number"},
+                    "c_hat": {"type": "number"},
+                    "reason": {"type": "string"},
+                    "evidence_urls": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                    "pipeline_steps": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                },
+            },
+        },
+        "search_summary": {"type": "string"},
+    },
+}
+
+
+_HN_SYSTEM_PROMPT = textwrap.dedent(
+    """\
+    You are a research analyst running on the LENS opportunity-discovery
+    platform. Your job: search Hacker News for posts about the operator's
+    query, read what real builders, founders, and engineers are saying,
+    and use that evidence to update the operator's existing candidate
+    list (rescoring v_hat / c_hat / status when the evidence supports or
+    contradicts a candidate) AND to surface up to 3 NEW candidates the
+    operator hasn't seen yet.
+
+    Methodology:
+    1. Use your web tools to search Hacker News (news.ycombinator.com or
+       hn.algolia.com) plus general web search for the query. Read the
+       top 10–20 results. Prefer threads from the last 90 days.
+    2. For each EXISTING candidate, decide if the evidence reinforces it
+       (raise v_hat, raise c_hat), weakens it (lower scores), or kills
+       it (move to kills with a clear reason).
+    3. For genuinely new pain / contradiction / cross-domain patterns
+       you found that are NOT already in the existing list, propose them
+       as new_candidates with citations (evidence_urls).
+
+    Constraints:
+    - v_hat, c_hat ∈ [0,1]. Be conservative — confidence should rise
+      slowly with evidence; killing requires multiple sources.
+    - Cite at least one evidence_url per new candidate.
+    - Don't restate or duplicate existing candidates as new ones.
+    - The reason field should be 1–2 sentences; the operator reads it.
+
+    Output: JSON only, matching the supplied schema.
+    """
+)
+
+
+_DOC_SYSTEM_PROMPT = textwrap.dedent(
+    """\
+    You are a research analyst running on the LENS opportunity-discovery
+    platform. The operator has just dropped a new piece of context (a
+    document, transcript, note, or memo) into the session. Your job is
+    to (a) integrate that context into the existing candidate list by
+    rescoring v_hat / c_hat / status and (b) surface up to 3 NEW
+    candidates the new context reveals.
+
+    Methodology:
+    1. Read the new context carefully.
+    2. For each EXISTING candidate, decide whether the context reinforces,
+       weakens, or kills it. Update v_hat / c_hat / status accordingly.
+    3. Propose new candidates only when the context surfaces a pattern
+       not already represented in the existing list.
+
+    Constraints:
+    - v_hat, c_hat ∈ [0,1]. Move scores in small increments (≤0.15 per
+       run) unless the evidence is overwhelming.
+    - reason fields must be 1–2 sentences explaining the score change
+       in terms the operator can review.
+    - Don't fabricate URLs; the new context is the only source.
+
+    Output: JSON only, matching the supplied schema.
+    """
+)
+
+
+def _serialize_existing_candidates(
+    cands: list[Candidate], limit: int = 50
+) -> str:
+    """Render existing candidates compactly for the prompt."""
+    rows: list[str] = []
+    for c in cands[:limit]:
+        if c.status in ("merged_into",):
+            continue
+        rows.append(
+            f"- id={c.id} | lens={c.lens} | status={c.status} | "
+            f"v={c.v_hat:.2f} c={c.c_hat:.2f} | {c.statement[:240]}"
+        )
+    return "\n".join(rows) or "(no existing candidates)"
+
+
+async def _run_codex_update_existing(
+    session: Session,
+    *,
+    run_id: uuid.UUID,
+    lens_session: LensSession,
+    system_prompt: str,
+    user_prompt: str,
+    reason_label: str,
+    timeout_seconds: int,
+    model_override: str | None,
+) -> RunSummary:
+    """Shared real-mode executor.
+
+    Drives Codex with a prompt that includes existing candidates as
+    ground truth + the new context (HN query / pasted document text).
+    Parses ``{updates, kills, new_candidates}`` and applies them with
+    full change-history.
+    """
+    from app.agents.adapters import (
+        CodexInvocationError,
+        CodexSubprocessAdapter,
+        parse_json_response,
+    )
+    from app.agents.types import AgentDefinition, AgentRunInput
+
+    summary = RunSummary()
+
+    agent = AgentDefinition(
+        name="lens_update_existing",
+        role="lens_update_existing",
+        system_prompt=system_prompt,
+        tool_names=[],
+        model=model_override or "gpt-5.5",
+        max_turns=4,
+        temperature=0.3,
+    )
+    adapter = CodexSubprocessAdapter(timeout_seconds=timeout_seconds)
+    run_input = AgentRunInput(
+        initial_prompt=user_prompt,
+        metadata={
+            "session_id": str(lens_session.id),
+            "output_schema": _UPDATE_SCHEMA,
+            "model_override": model_override,
+        },
+    )
+
+    try:
+        run_output = await adapter.run(agent, run_input, tools=[])
+    except CodexInvocationError as exc:
+        logger.exception("codex invocation failed (%s)", reason_label)
+        summary.notes.append(f"codex failed: {exc}")
+        return summary
+
+    try:
+        parsed = parse_json_response(run_output.final_message)
+    except ValueError:
+        logger.warning(
+            "%s produced unparseable JSON: %r",
+            reason_label,
+            run_output.final_message[:500],
+        )
+        summary.notes.append("codex returned unparseable JSON")
+        return summary
+
+    if not isinstance(parsed, dict):
+        summary.notes.append("codex returned non-object payload")
+        return summary
+
+    by_id: dict[str, Candidate] = {
+        str(c.id): c
+        for c in _candidates_in_session(session, lens_session.id)
+    }
+
+    # Apply updates
+    for upd in parsed.get("updates", []) or []:
+        if not isinstance(upd, dict):
+            continue
+        cid = str(upd.get("candidate_id", "")).strip()
+        cand = by_id.get(cid)
+        if cand is None or cand.status in ("killed", "merged_into"):
+            continue
+        try:
+            new_v = max(0.0, min(1.0, float(upd.get("v_hat", cand.v_hat))))
+            new_c = max(0.0, min(1.0, float(upd.get("c_hat", cand.c_hat))))
+        except (TypeError, ValueError):
+            continue
+        new_status = upd.get("status") if isinstance(upd.get("status"), str) else cand.status
+        reason = str(upd.get("reason", reason_label))[:500]
+        _apply_with_history(
+            session,
+            run_id=run_id,
+            candidate=cand,
+            reason=reason,
+            change_kind="updated",
+            v_hat=new_v,
+            c_hat=new_c,
+            status=new_status,
+        )
+        _emit_event(
+            session,
+            sid=lens_session.id,
+            candidate_id=cand.id,
+            kind="candidate_v_hat_updated",
+            extra={"to": new_v},
+        )
+        summary.candidates_updated += 1
+
+    # Apply kills
+    for kill in parsed.get("kills", []) or []:
+        if not isinstance(kill, dict):
+            continue
+        cid = str(kill.get("candidate_id", "")).strip()
+        cand = by_id.get(cid)
+        if cand is None or cand.status in ("killed", "merged_into"):
+            continue
+        reason = str(kill.get("reason", reason_label))[:500]
+        _apply_with_history(
+            session,
+            run_id=run_id,
+            candidate=cand,
+            reason=reason,
+            change_kind="killed",
+            status="killed",
+            challenger_verdict="red_struck",
+        )
+        _emit_event(
+            session,
+            sid=lens_session.id,
+            candidate_id=cand.id,
+            kind="candidate_killed",
+        )
+        summary.candidates_killed += 1
+
+    # Apply new candidates
+    for raw in parsed.get("new_candidates", []) or []:
+        if not isinstance(raw, dict):
+            continue
+        statement = str(raw.get("statement", "")).strip()
+        if not statement:
+            continue
+        lens = str(raw.get("lens", "cross_domain_transfer"))
+        try:
+            v_hat = max(0.0, min(1.0, float(raw.get("v_hat", 0.55))))
+            c_hat = max(0.0, min(1.0, float(raw.get("c_hat", 0.4))))
+        except (TypeError, ValueError):
+            v_hat, c_hat = 0.55, 0.4
+        urls = [u for u in (raw.get("evidence_urls") or []) if isinstance(u, str)]
+        steps = [s for s in (raw.get("pipeline_steps") or []) if isinstance(s, str)]
+        reason = str(raw.get("reason", reason_label))[:500]
+        cand = _create_with_history(
+            session,
+            run_id=run_id,
+            session_id=lens_session.id,
+            owner_id=lens_session.owner_id,
+            reason=reason,
+            statement=statement,
+            lens=lens,
+            v_hat=v_hat,
+            c_hat=c_hat,
+            chunks=len(urls),
+            sources=len(urls),
+            pipeline_steps=steps,
+            status="supported" if urls else "speculative",
+        )
+        # Stash URLs into evidence_sources for the brief view.
+        if urls:
+            cand.evidence_sources = [
+                {"title": u, "kind": "web", "url": u} for u in urls[:8]
+            ]
+            session.add(cand)
+            session.commit()
+        _emit_event(
+            session,
+            sid=lens_session.id,
+            candidate_id=cand.id,
+            kind="candidate_added",
+        )
+        summary.candidates_added += 1
+
+    search_summary = str(parsed.get("search_summary", "")).strip()
+    if search_summary:
+        summary.notes.append(search_summary[:300])
+    summary.notes.append(
+        f"+{summary.candidates_added} new · "
+        f"~{summary.candidates_updated} updated · "
+        f"✗{summary.candidates_killed} killed"
+    )
+    return summary
+
+
+async def _exec_hn_search_real(
+    session: Session,
+    *,
+    run_id: uuid.UUID,
+    lens_session: LensSession,
+    input_payload: dict[str, Any],
+) -> RunSummary:
+    """Real HN search: Codex performs the web search itself."""
+    query = str(input_payload.get("query") or lens_session.goal_query or "AI tooling").strip()
+    existing = _candidates_in_session(session, lens_session.id)
+    user_prompt = textwrap.dedent(
+        f"""
+        Operator's investigation focus: {lens_session.title}
+        {('Goal query: ' + lens_session.goal_query) if lens_session.goal_query else ''}
+
+        Hacker News query to investigate: "{query}"
+
+        Search HN (and the web for HN-discussed posts) for "{query}" and
+        adjacent threads. Read what builders are complaining about,
+        what's being shipped, and where the disagreements are. Then:
+
+        - Update the existing candidates below using the evidence you
+          found (raise/lower v_hat and c_hat; flip status when warranted).
+        - Surface up to 3 NEW candidates if there are pain or
+          contradiction patterns the existing list doesn't already cover.
+
+        ## Existing candidates
+        {_serialize_existing_candidates(existing)}
+
+        Return a JSON object matching the supplied schema. The reason
+        fields are surfaced to the operator — make them concrete (cite
+        the HN thread or quote a phrase).
+        """
+    ).strip()
+
+    return await _run_codex_update_existing(
+        session,
+        run_id=run_id,
+        lens_session=lens_session,
+        system_prompt=_HN_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+        reason_label=f"HN search: {query}",
+        timeout_seconds=int(input_payload.get("timeout_seconds", 600)),
+        model_override=input_payload.get("model_override"),
+    )
+
+
+async def _exec_document_upload_real(
+    session: Session,
+    *,
+    run_id: uuid.UUID,
+    lens_session: LensSession,
+    input_payload: dict[str, Any],
+) -> RunSummary:
+    """Real document upload: pasted text is the new context."""
+    content = str(input_payload.get("content") or "").strip()
+    label = str(input_payload.get("document_label") or "operator note").strip()
+    if not content:
+        summary = RunSummary()
+        summary.notes.append("no content provided; nothing to integrate")
+        return summary
+    existing = _candidates_in_session(session, lens_session.id)
+    truncated = content if len(content) <= 8000 else content[:8000] + "…[truncated]"
+    user_prompt = textwrap.dedent(
+        f"""
+        Operator's investigation focus: {lens_session.title}
+        {('Goal query: ' + lens_session.goal_query) if lens_session.goal_query else ''}
+
+        ## New context dropped by the operator
+        Label: {label}
+
+        ```
+        {truncated}
+        ```
+
+        Integrate this context into the candidate list:
+        - Update existing candidates whose evidence base is touched by
+          the new context. Move v_hat / c_hat / status accordingly.
+        - Add up to 3 NEW candidates only if the context surfaces a
+          genuinely new pattern.
+
+        ## Existing candidates
+        {_serialize_existing_candidates(existing)}
+
+        Return a JSON object matching the supplied schema.
+        """
+    ).strip()
+
+    return await _run_codex_update_existing(
+        session,
+        run_id=run_id,
+        lens_session=lens_session,
+        system_prompt=_DOC_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+        reason_label=f"document: {label}",
+        timeout_seconds=int(input_payload.get("timeout_seconds", 600)),
+        model_override=input_payload.get("model_override"),
+    )
+
+
+# ---------------------------------------------------------------------------
 # Dispatcher
 # ---------------------------------------------------------------------------
 
@@ -802,6 +1260,8 @@ _SCRIPTED: dict[str, Callable[..., RunSummary]] = {
 _REAL: dict[str, Callable[..., Any]] = {
     "contradiction_lens": _exec_contradiction_lens_real,
     "cross_domain_lens": _exec_cross_domain_lens_real,
+    "hn_search": _exec_hn_search_real,
+    "document_upload": _exec_document_upload_real,
 }
 
 

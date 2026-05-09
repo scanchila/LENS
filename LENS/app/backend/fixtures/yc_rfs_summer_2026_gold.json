@@ -2,46 +2,130 @@
   "description": "Gold map: substring of a candidate.statement -> the YC RFS item it matches. Lets the demo score deterministically without an LLM round-trip during the live reveal. Substrings are lowercased; matched via simple `if sub in statement.lower()`.",
   "matches": [
     {
-      "statement_substring": "browser-native llm agents",
+      "statement_substring": "agent",
+      "rfs_item_id": "rfs-013",
+      "match_kind": "adjacent",
+      "rationale": "Software for agents — first-class machine-readable interfaces."
+    },
+    {
+      "statement_substring": "agent observability",
+      "rfs_item_id": "rfs-013",
+      "match_kind": "direct",
+      "rationale": "Falls under 'software for agents' tooling."
+    },
+    {
+      "statement_substring": "inference",
+      "rfs_item_id": "rfs-011",
+      "match_kind": "direct",
+      "rationale": "Inference chips for agent workflows."
+    },
+    {
+      "statement_substring": "company brain",
       "rfs_item_id": "rfs-005",
       "match_kind": "direct",
-      "rationale": "Both target browser-native agents with local context."
+      "rationale": "Direct hit: company knowledge into executable skills file."
     },
     {
-      "statement_substring": "personal rag",
-      "rfs_item_id": "rfs-007",
+      "statement_substring": "knowledge worker",
+      "rfs_item_id": "rfs-005",
+      "match_kind": "adjacent",
+      "rationale": "Adjacent to Company Brain — extracting tacit knowledge."
+    },
+    {
+      "statement_substring": "drone",
+      "rfs_item_id": "rfs-006",
       "match_kind": "direct",
-      "rationale": "Both target private retrieval over personal docs."
+      "rationale": "Counter-swarm defense."
     },
     {
-      "statement_substring": "real-time data quality for ai training",
+      "statement_substring": "supply chain",
+      "rfs_item_id": "rfs-015",
+      "match_kind": "direct",
+      "rationale": "Supply Chain 2.0 for semiconductors."
+    },
+    {
+      "statement_substring": "semiconductor",
+      "rfs_item_id": "rfs-015",
+      "match_kind": "direct",
+      "rationale": "Supply Chain 2.0 for semiconductors."
+    },
+    {
+      "statement_substring": "compliance",
+      "rfs_item_id": "rfs-003",
+      "match_kind": "adjacent",
+      "rationale": "AI-native service company replacing compliance work."
+    },
+    {
+      "statement_substring": "audit",
       "rfs_item_id": "rfs-003",
       "match_kind": "direct",
-      "rationale": "Both target training-data quality at runtime."
+      "rationale": "AI-native audit/tax service."
     },
     {
-      "statement_substring": "vertical compliance copilots",
-      "rfs_item_id": "rfs-002",
-      "match_kind": "direct",
-      "rationale": "Both target SMB compliance."
+      "statement_substring": "healthcare",
+      "rfs_item_id": "rfs-004",
+      "match_kind": "adjacent",
+      "rationale": "AI personalized medicine."
     },
     {
-      "statement_substring": "voice-first ops",
+      "statement_substring": "personalized medicine",
       "rfs_item_id": "rfs-004",
       "match_kind": "direct",
-      "rationale": "Both target voice-first field-worker workflows."
+      "rationale": "Direct hit on AI personalized medicine."
     },
     {
-      "statement_substring": "open-source agent observability",
-      "rfs_item_id": "rfs-010",
+      "statement_substring": "agriculture",
+      "rfs_item_id": "rfs-001",
       "match_kind": "direct",
-      "rationale": "Both target agent observability tooling."
+      "rationale": "AI for low-pesticide agriculture."
     },
     {
-      "statement_substring": "ai-native crm",
+      "statement_substring": "discovery engine",
+      "rfs_item_id": "rfs-002",
+      "match_kind": "direct",
+      "rationale": "AI-native discovery engines for science."
+    },
+    {
+      "statement_substring": "drug discovery",
+      "rfs_item_id": "rfs-002",
+      "match_kind": "direct",
+      "rationale": "AI-native discovery engines for drug discovery."
+    },
+    {
+      "statement_substring": "saas",
+      "rfs_item_id": "rfs-012",
+      "match_kind": "adjacent",
+      "rationale": "AI-native SaaS challenger."
+    },
+    {
+      "statement_substring": "fortune",
+      "rfs_item_id": "rfs-014",
+      "match_kind": "direct",
+      "rationale": "Selling to large enterprises."
+    },
+    {
+      "statement_substring": "enterprise",
+      "rfs_item_id": "rfs-014",
+      "match_kind": "adjacent",
+      "rationale": "Adjacent to selling to huge companies."
+    },
+    {
+      "statement_substring": "space",
+      "rfs_item_id": "rfs-008",
+      "match_kind": "direct",
+      "rationale": "Electronics in space / industrial in space."
+    },
+    {
+      "statement_substring": "hardware",
       "rfs_item_id": "rfs-009",
       "match_kind": "adjacent",
-      "rationale": "Adjacent to AI-native CRM for studios."
+      "rationale": "Adjacent to hardware-supply-chain RFS."
+    },
+    {
+      "statement_substring": "dynamic interface",
+      "rfs_item_id": "rfs-007",
+      "match_kind": "direct",
+      "rationale": "Dynamic software interfaces."
     }
   ]
 }
