@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { OpenAPI } from "@/client"
 import type {
   Candidate,
   DiffEvent,
@@ -11,10 +10,10 @@ import { getYcRfsItems } from "@/components/Board/demoScript"
 
 import { useSessionEvents } from "./useSessionEvents"
 
-const apiBase = () =>
-  (OpenAPI.BASE as string | undefined) ??
-  (import.meta.env.VITE_API_URL as string | undefined) ??
-  ""
+// Use relative URLs so the Vite dev-server proxy (vite.config.ts -> /api ->
+// backend) handles routing. Avoids CORS in dev and removes the dependency on
+// VITE_API_URL pointing to the right host:port.
+const apiBase = () => ""
 
 const authHeaders = (): Record<string, string> => {
   const tok = localStorage.getItem("access_token") ?? ""
@@ -85,14 +84,6 @@ const toCandidate = (c: BackendCandidate): Candidate => ({
   evidence_sources: c.evidence_sources as Candidate["evidence_sources"],
 })
 
-interface StageResult {
-  stage_index: number
-  stage_key: string
-  label: string
-  events: { kind: string; candidate_id?: string }[]
-  candidates_total: number
-}
-
 interface LiveBoardState {
   candidates: Candidate[]
   events: DiffEvent[]
@@ -152,6 +143,8 @@ export interface UseLiveBoard {
   jumpTo: (i: number) => Promise<void>
   setBriefCandidate: (id: string | null) => void
   setFullReeval: (v: boolean) => void
+  runLens: (lens: string, modelOverride?: string) => Promise<number>
+  auditAll: () => Promise<number>
   loading: boolean
   error: string | null
 }
@@ -414,6 +407,62 @@ export function useLiveBoard(sessionId: string): UseLiveBoard {
     }
   }, [stageIndex, stages])
 
+  const runLens = useCallback(
+    async (lens: string, modelOverride?: string) => {
+      setLoading(true)
+      try {
+        const res = await fetch(
+          `${apiBase()}/api/v1/sessions/${sessionId}/run-lens`,
+          {
+            method: "POST",
+            headers: jsonHeaders(),
+            body: JSON.stringify({
+              lens,
+              model_override: modelOverride,
+              timeout_seconds: 600,
+            }),
+          },
+        )
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "")
+          setError(`run-lens ${res.status}: ${txt.slice(0, 240)}`)
+          return 0
+        }
+        const json = (await res.json()) as { candidate_ids: string[] }
+        await refreshCandidates()
+        return json.candidate_ids.length
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e))
+        return 0
+      } finally {
+        setLoading(false)
+      }
+    },
+    [sessionId, refreshCandidates],
+  )
+
+  const auditAll = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(
+        `${apiBase()}/api/v1/sessions/${sessionId}/audit-all`,
+        { method: "POST", headers: authHeaders() },
+      )
+      if (!res.ok) {
+        setError(`audit-all ${res.status}`)
+        return 0
+      }
+      const json = (await res.json()) as { candidate_id: string }[]
+      await refreshCandidates()
+      return json.length
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+      return 0
+    } finally {
+      setLoading(false)
+    }
+  }, [sessionId, refreshCandidates])
+
   return {
     state: {
       candidates,
@@ -434,6 +483,8 @@ export function useLiveBoard(sessionId: string): UseLiveBoard {
     jumpTo,
     setBriefCandidate: setBriefCandidateId,
     setFullReeval,
+    runLens,
+    auditAll,
     loading,
     error,
   }

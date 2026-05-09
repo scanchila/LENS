@@ -11,6 +11,23 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: process.env.BACKEND_URL || "http://localhost:8000",
+        changeOrigin: true,
+        ws: false,
+        // Keep SSE connections open
+        configure: (proxy) => {
+          proxy.on("proxyRes", (proxyRes) => {
+            if (proxyRes.headers["content-type"]?.includes("text/event-stream")) {
+              proxyRes.headers["x-accel-buffering"] = "no"
+            }
+          })
+        },
+      },
+    },
+  },
   plugins: [
     tanstackRouter({
       target: "react",

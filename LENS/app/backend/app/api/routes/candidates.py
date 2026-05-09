@@ -101,7 +101,10 @@ def list_candidates(
         stmt = stmt.where(Candidate.status == status_filter)
     stmt = stmt.order_by(Candidate.created_at.desc()).limit(limit)  # type: ignore[union-attr]
     rows = session.exec(stmt).all()
-    public = [CandidatePublic.model_validate(c, from_attributes=True) for c in rows]
+    public: list[CandidatePublic] = []
+    for r in rows:
+        cand = r if isinstance(r, Candidate) else r[0]  # type: ignore[index]
+        public.append(CandidatePublic.model_validate(cand, from_attributes=True))
     return CandidatesPublic(data=public, count=len(public))
 
 
@@ -243,13 +246,16 @@ def yc_reveal(
         except Exception:  # noqa: BLE001
             pass
 
-    live = session.exec(
+    raw_rows = session.exec(
         select(Candidate)
         .where(Candidate.session_id == session_id)
         .where(Candidate.status.notin_(["killed", "merged_into"]))  # type: ignore[union-attr]
         .order_by((Candidate.v_hat * Candidate.c_hat).desc())  # type: ignore[union-attr]
         .limit(top_k)
     ).all()
+    live: list[Candidate] = [
+        (r if isinstance(r, Candidate) else r[0]) for r in raw_rows  # type: ignore[index]
+    ]
 
     matches: list[YcMatch] = []
     for cand in live:

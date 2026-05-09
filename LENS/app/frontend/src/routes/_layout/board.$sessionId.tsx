@@ -7,6 +7,7 @@ import { BenchmarkWidget } from "@/components/Board/BenchmarkWidget"
 import { CarSidePanel } from "@/components/Board/CarSidePanel"
 import { DemoController } from "@/components/Board/DemoController"
 import { DiffFeed } from "@/components/Board/DiffFeed"
+import { LiveActions } from "@/components/Board/LiveActions"
 import { OpportunityBriefDialog } from "@/components/Board/OpportunityBriefDialog"
 import { PredictionCard } from "@/components/Board/PredictionCard"
 import { RankingHeader } from "@/components/Board/RankingHeader"
@@ -33,7 +34,6 @@ function PredictionBoard() {
   const isLive = mode === "live"
   const state = isLive ? live.state : sim.state
   const stageIndex = isLive ? live.stageIndex : sim.stageIndex
-  const totalStages = isLive ? live.totalStages : sim.stages.length
   const currentStage = isLive
     ? live.currentStage
     : sim.currentStage
@@ -173,6 +173,14 @@ function PredictionBoard() {
         onToggleFullReeval={setFullReeval}
       />
 
+      {isLive && (
+        <LiveActions
+          onRunLens={live.runLens}
+          onAuditAll={live.auditAll}
+          loading={live.loading}
+        />
+      )}
+
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-3">
           {liveCandidates.map((c, i) => {
@@ -236,7 +244,7 @@ function PredictionBoard() {
           if (isLive && briefCandidate) {
             try {
               await fetch(
-                `${(import.meta.env.VITE_API_URL as string | undefined) ?? ""}/api/v1/sessions/${sessionId}/candidates/${briefCandidate.id}/verdict`,
+                `/api/v1/sessions/${sessionId}/candidates/${briefCandidate.id}/verdict`,
                 {
                   method: "PATCH",
                   headers: {

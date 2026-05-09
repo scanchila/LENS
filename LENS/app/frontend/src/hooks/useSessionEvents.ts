@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react"
 
-import { OpenAPI } from "@/client"
-
 export interface SessionEvent {
   type: string
   payload: Record<string, unknown>
@@ -13,10 +11,8 @@ export interface UseSessionEvents {
   error: string | null
 }
 
-const apiBase = () =>
-  (OpenAPI.BASE as string | undefined) ??
-  (import.meta.env.VITE_API_URL as string | undefined) ??
-  ""
+// Relative URL → Vite proxy in dev; same-origin in prod (nginx + backend).
+const apiBase = () => ""
 
 export function useSessionEvents(
   sessionId: string,

@@ -6,6 +6,16 @@ ENV PYTHONUNBUFFERED=1
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
 COPY --from=ghcr.io/astral-sh/uv:0.9.26 /uv /uvx /bin/
 
+# Install Node.js + the OpenAI Codex CLI for the live LLM lens runner.
+# The CodexSubprocessAdapter shells out to the `codex` binary; without
+# it, /api/v1/sessions/{sid}/run-lens returns 500.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && npm install -g @openai/codex@latest \
+    && rm -rf /var/lib/apt/lists/*
+
 # Compile bytecode
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#compiling-bytecode
 ENV UV_COMPILE_BYTECODE=1

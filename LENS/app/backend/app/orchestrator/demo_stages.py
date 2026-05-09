@@ -48,7 +48,22 @@ def _now() -> datetime:
 
 
 def _candidates_by_session(session: Session, sid: uuid.UUID) -> list[Candidate]:
-    return list(session.exec(select(Candidate).where(Candidate.session_id == sid)).scalars())
+    rows = session.exec(
+        select(Candidate).where(Candidate.session_id == sid)
+    ).all()
+    out: list[Candidate] = []
+    for r in rows:
+        # SQLModel.Session.exec on a single-entity select normally yields the
+        # entity directly; some configurations return a Row whose first
+        # element is the entity. Normalize to the entity here.
+        if isinstance(r, Candidate):
+            out.append(r)
+        else:
+            try:
+                out.append(r[0])  # type: ignore[index]
+            except Exception:  # noqa: BLE001
+                continue
+    return out
 
 
 def _refresh_cursor(session: Session, sid: uuid.UUID, state: ReplayState) -> None:
@@ -501,9 +516,7 @@ def apply_stage(
 
 def reset_session(session: Session, sid: uuid.UUID) -> int:
     """Wipe candidates for a session so a stage replay starts clean."""
-    rows = list(
-        session.exec(select(Candidate).where(Candidate.session_id == sid)).scalars()
-    )
+    rows = _candidates_by_session(session, sid)
     n = len(rows)
     for r in rows:
         session.delete(r)

@@ -7,12 +7,43 @@ Operator-facing reference for the 4-to-5-minute hackathon demo. Cross-references
 1. Open the laptop on the demo screen, full brightness, screen lock disabled.
 2. Close every Slack / iMessage / Discord client. Disable system notifications.
 3. Confirm the network. The demo runs locally; no live LLM call is required for the staged simulation.
-4. Ensure `bun install` has been run in `LENS/app/frontend/`.
-5. Start the frontend: `cd LENS/app/frontend && bun run dev`.
-6. Open the browser to `http://localhost:5173/board/00000000-0000-4000-8000-000000000001`.
-7. Open the dashboard tab too as a backup landing page.
-8. Press `Reset` once — verify the cold-start stage shows "stage 0 / 11" and 0 candidates.
-9. Page through the 11 stages once silently to make sure each step renders. Reset.
+4. Ensure `bun install` has been run in `LENS/app/`.
+5. Start backend (only needed for live mode): `cd LENS/app && docker compose up backend db minio`.
+6. Apply migrations: `cd LENS/app/backend && uv run alembic upgrade head` (one-time per fresh DB).
+7. Start the frontend: `cd LENS/app/frontend && bun run dev`.
+8. Open the browser to `http://localhost:5173/board/00000000-0000-4000-8000-000000000001`.
+9. Open the dashboard tab too as a backup landing page.
+10. Press `Reset` once — verify the cold-start stage shows "stage 0 / 11" and 0 candidates.
+11. Page through the 11 stages once silently to make sure each step renders. Reset.
+
+### Mock vs. Live mode
+
+Top-right of the board has a `Mock` / `Live` toggle.
+
+- **Mock (default, recommended for demo)**: deterministic JS simulation. No backend required. Sub-millisecond stage advance. Highest reliability.
+- **Live**: each `Next` POSTs to `/api/v1/sessions/{sid}/demo/next`, persists candidates to Postgres, emits `pg_notify`, and the SSE endpoint streams the event back. The board reflects real DB state. Higher credibility, lower reliability. **Verify SSE shows the green `wifi` indicator before going live.**
+
+Both modes run the same 11-stage arc.
+
+### Live mode + real LLM (Codex)
+
+In Live mode the board shows three additional buttons in the "Live LLM" bar:
+
+- **Run cross-domain (Codex)** — `POST /run-lens?lens=cross_domain_transfer`. Spawns the bundled `codex exec` CLI inside the backend container, feeds it the corpus snippets + curated CS/AI principles, and parses a structured JSON response (Codex `--output-schema` enforces the shape). Persists candidates to Postgres + writes `Candidate`/`Claim`/`Source` vertices into Apache AGE. ~20-60s per run depending on model load.
+- **Run contradiction (Codex)** — same path with the contradiction-surfacing system prompt.
+- **AGE provenance audit** — `POST /audit-all`. For each live candidate, walks the AGE graph (`Candidate <-[:supports|refutes]- Claim -[:cited_by]-> Source`). Claims with no `Source` mark the candidate `provenance_failed` (the Skeptic-fold step from §11.3); otherwise the candidate is `held` and (if dossiered) advances to `ready_to_validate`. Sub-second.
+
+#### Codex setup
+- The backend Dockerfile installs Node + `@openai/codex` globally.
+- The host's authenticated session is mounted into the container via `${HOME}/.codex` → `/root/.codex` (read-write, see `compose.override.yml`). If the host runs `codex login` once, the backend inherits the session.
+- For non-default models, pass `model_override` to `/run-lens`: e.g. `gpt-5.5`, `gpt-5.1-codex-mini`. Default is whatever the user's Codex profile picks.
+- LLM cost is not currently surfaced through the Codex CLI — `cost_usd=0.0` in the audit log. Track via Codex's own usage page.
+
+#### Live-mode operational tips
+- The frontend Docker container nginx proxies `/api/*` to the backend service via Docker DNS — no CORS to manage.
+- If you edit backend code, FastAPI's `--reload` picks it up via the `./backend/app:/app/backend/app` bind mount in `compose.override.yml`. No rebuild needed for code changes; rebuild only for new packages.
+- New Alembic migrations: `docker compose up -d prestart` (or just `docker compose up -d backend` — prestart runs first).
+- AGE provenance audit assumes the candidate was created by a lens runner that wrote claim vertices. Replay-mode candidates (from the demo stage script) don't have AGE backing, so audit-all on those returns `held` with `audited=0` for all of them — by design.
 
 ## Live demo flow
 

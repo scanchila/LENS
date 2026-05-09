@@ -50,6 +50,15 @@ services:
     ports:
       - "5432:5432"
 
+  prestart:
+    # Mount the same source dirs as backend so alembic upgrade head sees
+    # any new migrations without a full image rebuild.
+    volumes:
+      - ./backend/app:/app/backend/app
+      - ./backend/scripts:/app/backend/scripts
+      - ./backend/fixtures:/app/backend/fixtures
+      - ./backend/alembic.ini:/app/backend/alembic.ini
+
   minio:
     restart: "no"
     ports:
@@ -87,6 +96,19 @@ services:
     # TODO: remove once coverage is done locally
     volumes:
       - ./backend/htmlcov:/app/backend/htmlcov
+      # Live-mount backend source so FastAPI --reload picks up changes
+      # without rebuilding the image. Excluded: .venv (linux/mac binary
+      # incompat with the container) and __pycache__ (stale bytecode).
+      - ./backend/app:/app/backend/app
+      - ./backend/scripts:/app/backend/scripts
+      - ./backend/fixtures:/app/backend/fixtures
+      - ./backend/alembic.ini:/app/backend/alembic.ini
+      # Reuse the host's authenticated Codex session so the live LLM
+      # lens runner can call `codex exec` without re-login. Read-write
+      # because codex writes session/cache state under ~/.codex; the
+      # container will share that state with the host (history grows on
+      # both sides). For a clean separation, point this at a copy.
+      - ${HOME}/.codex:/root/.codex
     environment:
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
@@ -109,6 +131,11 @@ services:
       args:
         - VITE_API_URL=http://localhost:8000
         - NODE_ENV=development
+    # Mount the nginx /api proxy fragment so updates take effect without
+    # a full image rebuild. Frontend container reaches `backend` via
+    # Docker DNS on the default network.
+    volumes:
+      - ./frontend/nginx-backend-not-found.conf:/etc/nginx/extra-conf.d/backend-not-found.conf:ro
 
   playwright:
     build:

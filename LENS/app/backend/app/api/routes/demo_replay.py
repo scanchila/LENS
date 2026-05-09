@@ -96,11 +96,9 @@ def next_stage(
     from app.models import Candidate
 
     total = len(
-        list(
-            session.exec(
-                select(Candidate).where(Candidate.session_id == session_id)
-            ).scalars()
-        )
+        session.exec(
+            select(Candidate).where(Candidate.session_id == session_id)
+        ).all()
     )
     stage = DEMO_STAGES[body.stage_index]
     return StageResult(
@@ -130,11 +128,9 @@ def jump(
     from app.models import Candidate
 
     total = len(
-        list(
-            session.exec(
-                select(Candidate).where(Candidate.session_id == session_id)
-            ).scalars()
-        )
+        session.exec(
+            select(Candidate).where(Candidate.session_id == session_id)
+        ).all()
     )
     last_idx = max(0, body.target_index - 1)
     stage = DEMO_STAGES[last_idx] if body.target_index > 0 else DEMO_STAGES[0]
