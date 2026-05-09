@@ -34,14 +34,14 @@ from app.agents.adapters import (  # noqa: E402
     ClaudeAgentSDKAdapter,
     DirectAnthropicAdapter,
 )
-from app.agents.tools import EchoTool, NoteEntry, NoteTool  # noqa: E402
+from app.agents.tools import EchoTool, InMemoryNoteSink, NoteTool  # noqa: E402
 
 
 SMOKE_AGENT_PROMPT = """\
 You are testing a multi-agent runtime.
 
 Use the `echo` tool exactly once with the text 'PHASE_0_PROBE'.
-Then use the `note` tool to record one observation: 'echo round-tripped successfully'.
+Then use the `note` tool to record one observation with text='echo round-tripped successfully' and kind='finding'.
 Then return a one-sentence final message confirming both calls happened.
 
 Do not call any other tool. Do not call echo or note more than once.
@@ -61,8 +61,11 @@ def build_agent(model: str) -> AgentDefinition:
 
 
 async def run_one(adapter_name: str, registry: FrameworkRegistry, model: str) -> AgentRunOutput:
-    note_buffer: list[NoteEntry] = []
-    tools = [EchoTool(), NoteTool(buffer=note_buffer)]
+    # Smoke test uses an in-memory note sink so it does not require a
+    # running database. The DB-bound path is exercised by the integration
+    # tests under tests/test_note_tool.py.
+    note_sink = InMemoryNoteSink()
+    tools = [EchoTool(), NoteTool(sink=note_sink)]
     agent = build_agent(model=model)
 
     framework = registry.get(adapter_name)
@@ -74,7 +77,7 @@ async def run_one(adapter_name: str, registry: FrameworkRegistry, model: str) ->
         ),
         tools=tools,
     )
-    output.framework_metadata.setdefault("note_buffer_size", len(note_buffer))
+    output.framework_metadata.setdefault("note_buffer_size", len(note_sink.notes))
     return output
 
 

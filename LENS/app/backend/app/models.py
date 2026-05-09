@@ -1,10 +1,19 @@
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from pydantic import EmailStr
-from sqlalchemy import Column, DateTime, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
@@ -201,3 +210,108 @@ class DossierJob(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
         nullable=True,
     )
+
+
+# ---------------------------------------------------------------------------
+# LLM cost log (TICKET-020)
+# ---------------------------------------------------------------------------
+
+
+class LlmCostLog(SQLModel, table=True):
+    """Audit log for LLM provider spend.
+
+    Append-only. Written by the ingestion pipeline (Voyage) and, in later
+    PRs, by agent-loop adapters (Anthropic). Budget cap enforcement reads
+    aggregates from this table.
+    """
+
+    __tablename__ = "llm_cost_log"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="user.id",
+        nullable=True,
+        index=True,
+        ondelete="SET NULL",
+    )
+    document_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="documents.id",
+        nullable=True,
+        index=True,
+        ondelete="SET NULL",
+    )
+    model: str = Field(sa_column=Column(String(128), nullable=False))
+    input_tokens: int = Field(
+        default=0, sa_column=Column(Integer, nullable=False, server_default="0")
+    )
+    output_tokens: int = Field(
+        default=0, sa_column=Column(Integer, nullable=False, server_default="0")
+    )
+    cost_usd: Decimal = Field(
+        default=Decimal("0"),
+        sa_column=Column(Numeric(12, 6), nullable=False, server_default="0"),
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Agent runtime: persisted session notes (TICKET-041)
+# ---------------------------------------------------------------------------
+
+
+class SessionNote(SQLModel, table=True):
+    __tablename__ = "session_notes"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: uuid.UUID = Field(nullable=False, index=True)
+    agent_name: str = Field(sa_column=Column(Text, nullable=False))
+    # Validation against the supported enum lives in the note tool so the
+    # catalog can be extended without a migration; see app/agents/tools/note.py.
+    kind: str = Field(sa_column=Column(Text, nullable=False))
+    text: str = Field(sa_column=Column(Text, nullable=False))
+    payload: dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Agent runtime: pending user questions (TICKET-042)
+# ---------------------------------------------------------------------------
+
+
+class PendingUserQuestion(SQLModel, table=True):
+    __tablename__ = "pending_user_questions"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: uuid.UUID = Field(nullable=False, index=True)
+    question: str = Field(sa_column=Column(Text, nullable=False))
+    asked_by_agent: str = Field(sa_column=Column(Text, nullable=False))
+    asked_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+    answer: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    answered_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=True,
+    )
+
+
+class AnswerQuestionRequest(SQLModel):
+    """Request body for POST /api/v1/sessions/{session_id}/answer-question."""
+
+    question_id: uuid.UUID
+    answer: str

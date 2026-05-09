@@ -81,6 +81,14 @@ class Settings(BaseSettings):
     # dev; override via LENS_CAR_TICKET_DIR for tests or non-default mounts.
     LENS_CAR_TICKET_DIR: str = "car-hub/lens/.codex-autorunner/tickets"
 
+    # Voyage embeddings (TICKET-020)
+    VOYAGE_API_KEY: str | None = None
+    VOYAGE_EMBED_MODEL: str = "voyage-3-large"
+    # Voyage-published rate (~$0.05 / 1M input tokens for voyage-3-large).
+    VOYAGE_COST_PER_M_INPUT_TOKENS_USD: float = 0.05
+    # Upload guardrail; rejected at the API edge before any parsing work.
+    LENS_UPLOAD_MAX_BYTES: int = 25 * 1024 * 1024
+
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
     SMTP_PORT: int = 587
