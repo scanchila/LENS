@@ -37,6 +37,8 @@ The local research corpus grounds this framing in seven source traditions:
 
 See [LENS theoretical framework](LENS/THEORY.md) for formal definitions of sources, traces, claims, signals, candidate problems, scoring components, candidate lifecycle states, lenses, opportunity briefs, and benchmark metrics.
 
+The scoring model keeps LENS's own candidate-problem definition primary. Its deeper base is multi-attribute utility theory, value-focused thinking, Bayesian value of information, exploration/exploitation, entrepreneurial opportunity theory, creativity assessment, and argument/evidence structure. Applied models such as ITN/SNT, Outcome-Driven Innovation, GRADE, RICE, CHNRI, TRL, and the Heilmeier Catechism are used only as operational adapters.
+
 ## Customer and User Thesis
 
 The primary customer hypothesis is a **startup studio or venture builder**: a partner, studio lead, or head of incubation with budget responsibility for deciding which opportunities deserve team and capital allocation.
