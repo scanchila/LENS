@@ -1,10 +1,19 @@
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any
 
 from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from pydantic import EmailStr
-from sqlalchemy import Column, DateTime, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, SQLModel
 
@@ -153,6 +162,54 @@ class Embedding(SQLModel, table=True):
     )
     model: str = Field(sa_column=Column(String(128), nullable=False))
     vector: Any = Field(sa_column=Column(Vector(EMBEDDING_DIM), nullable=False))
+
+
+# ---------------------------------------------------------------------------
+# LLM cost log (TICKET-020)
+# ---------------------------------------------------------------------------
+
+
+class LlmCostLog(SQLModel, table=True):
+    """Audit log for LLM provider spend.
+
+    Append-only. Written by the ingestion pipeline (Voyage) and, in later
+    PRs, by agent-loop adapters (Anthropic). Budget cap enforcement reads
+    aggregates from this table.
+    """
+
+    __tablename__ = "llm_cost_log"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="user.id",
+        nullable=True,
+        index=True,
+        ondelete="SET NULL",
+    )
+    document_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="documents.id",
+        nullable=True,
+        index=True,
+        ondelete="SET NULL",
+    )
+    model: str = Field(sa_column=Column(String(128), nullable=False))
+    input_tokens: int = Field(
+        default=0, sa_column=Column(Integer, nullable=False, server_default="0")
+    )
+    output_tokens: int = Field(
+        default=0, sa_column=Column(Integer, nullable=False, server_default="0")
+    )
+    cost_usd: Decimal = Field(
+        default=Decimal("0"),
+        sa_column=Column(Numeric(12, 6), nullable=False, server_default="0"),
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
 
 
 # ---------------------------------------------------------------------------
