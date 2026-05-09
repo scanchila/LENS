@@ -33,6 +33,8 @@ dependencies = [
     "pypdf>=4.0.0",                        # PDF text extraction
     "trafilatura>=1.12.0",                 # Clean web content extraction
     "markdown>=3.5.0",
+    # CAR dossier ingest worker (TICKET-046)
+    "watchfiles>=0.21",                    # async filesystem watcher (uses inotify on Linux)
 ]
 
 [dependency-groups]
