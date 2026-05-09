@@ -1,69 +1,152 @@
-"""Note tool — append a finding to the session's note buffer.
+"""Note tool — append a structured note to ``session_notes``.
 
-The orchestrator owns the note buffer (a plain list) and constructs one
-NoteTool instance per session, passing the buffer in. Each tool call
-appends; the orchestrator can read the buffer back at any point to
-produce intermediate UX or include in subsequent agent-run prompts.
+Backbone of the provenance ledger and intermediate-finding scratchpad.
+Each call inserts one row keyed by ``ToolContext.session_id`` and tagged
+with the calling agent. Other tools (and post-run analytics) can read
+the table back; the orchestrator no longer owns an ephemeral buffer.
 
-The buffer is intentionally not stored on ToolContext: notes are a
-lens-proposer-style scratchpad, not cross-tool shared state.
+Ports for testing: the tool depends on a small ``NoteSink`` protocol
+rather than a SQLModel session directly. The default factory binds it
+to the application engine. The phase-0 smoke test injects an
+in-memory implementation so it can keep running without a database.
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any
+import uuid
+from typing import Any, Protocol
+
+from sqlalchemy.engine import Engine
+from sqlmodel import Session
+
+from app.core.db import engine as default_engine
+from app.models import SessionNote
 
 from ..tool import Tool
 from ..types import ToolContext, ToolResult, ToolSpec
 
+VALID_KINDS: frozenset[str] = frozenset(
+    {"scratch", "finding", "provenance", "hypothesis", "candidate"}
+)
 
-class NoteEntry(dict[str, Any]):
-    """Loosely-typed note entry. Keys: ``timestamp``, ``content``,
-    ``tags``, ``agent_name``."""
+
+class NoteSink(Protocol):
+    """Sink that persists a note row and returns the new id.
+
+    The default implementation writes to Postgres via SQLModel; tests and
+    the smoke test can substitute an in-memory adapter.
+    """
+
+    def append(self, note: SessionNote) -> uuid.UUID: ...
+
+
+class _SqlNoteSink:
+    """Default sink: append-only insert into ``session_notes``."""
+
+    def __init__(self, engine: Engine) -> None:
+        self._engine = engine
+
+    def append(self, note: SessionNote) -> uuid.UUID:
+        with Session(self._engine) as session:
+            session.add(note)
+            session.commit()
+            session.refresh(note)
+            return note.id
 
 
 class NoteTool(Tool):
     spec = ToolSpec(
         name="note",
         description=(
-            "Persist an intermediate finding into the session's note buffer. "
-            "Use during the SCAN phase to track candidate patterns and during "
-            "later phases to leave breadcrumbs for the synthesizer. Notes "
-            "are visible across the rest of this run."
+            "Persist a structured note into the current session's note ledger. "
+            "Use during the SCAN phase to capture candidate patterns, during "
+            "evidence work to record provenance, and at any point to leave "
+            "breadcrumbs for the synthesizer. Each call writes one row; "
+            "notes are durable and visible to later agents in the same session."
         ),
         input_schema={
             "type": "object",
             "properties": {
-                "content": {
+                "text": {
                     "type": "string",
                     "description": "The note content. One observation per call.",
                 },
-                "tags": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "description": "Optional tags for later filtering (e.g. 'pattern', 'candidate', 'gap').",
+                "kind": {
+                    "type": "string",
+                    "enum": sorted(VALID_KINDS),
+                    "default": "scratch",
+                    "description": (
+                        "Note category: 'scratch' (working thought), "
+                        "'finding' (concrete observation), "
+                        "'provenance' (claim-to-source link), "
+                        "'hypothesis' (testable conjecture), "
+                        "'candidate' (proposed problem/opportunity)."
+                    ),
+                },
+                "payload": {
+                    "type": "object",
+                    "description": (
+                        "Optional structured side-channel (e.g. citation list, "
+                        "provenance map). Free-form JSON object."
+                    ),
                 },
             },
-            "required": ["content"],
+            "required": ["text"],
         },
     )
 
-    def __init__(self, buffer: list[NoteEntry]) -> None:
-        # Buffer is a reference shared with the orchestrator. Mutating it
-        # here is intentional and visible to the rest of the run.
-        self._buffer = buffer
+    def __init__(self, sink: NoteSink | None = None) -> None:
+        self._sink = sink if sink is not None else _SqlNoteSink(default_engine)
 
     async def execute(self, args: dict[str, Any], ctx: ToolContext) -> ToolResult:
-        entry: NoteEntry = NoteEntry(
-            timestamp=datetime.now(timezone.utc).isoformat(),
-            content=str(args.get("content", "")),
-            tags=list(args.get("tags") or []),
+        text = args.get("text")
+        if not isinstance(text, str) or not text.strip():
+            return ToolResult(
+                content="invalid text: must be a non-empty string", is_error=True
+            )
+
+        kind = args.get("kind", "scratch")
+        if not isinstance(kind, str) or kind not in VALID_KINDS:
+            return ToolResult(content=f"invalid kind: {kind!r}", is_error=True)
+
+        payload = args.get("payload")
+        if payload is not None and not isinstance(payload, dict):
+            return ToolResult(
+                content="invalid payload: must be a JSON object or omitted",
+                is_error=True,
+            )
+
+        note = SessionNote(
+            session_id=ctx.session_id,
             agent_name=ctx.parent_agent_name,
+            kind=kind,
+            text=text,
+            payload=payload,
         )
-        self._buffer.append(entry)
+        try:
+            note_id = self._sink.append(note)
+        except Exception as exc:  # noqa: BLE001 — surface as recoverable error
+            return ToolResult(content=f"failed to persist note: {exc!r}", is_error=True)
+
         return ToolResult(
-            content=f"Noted ({len(self._buffer)} note(s) in buffer).",
+            content=f"note recorded (id={note_id})",
             is_error=False,
-            metadata={"index": len(self._buffer) - 1},
+            metadata={"note_id": str(note_id), "kind": kind},
         )
+
+
+class InMemoryNoteSink:
+    """Minimal sink for tests and the phase-0 smoke runner.
+
+    Stores notes in a list (publicly accessible as ``.notes``) and returns
+    a fresh UUID per append. Does not exercise any DB code paths.
+    """
+
+    def __init__(self) -> None:
+        self.notes: list[SessionNote] = []
+
+    def append(self, note: SessionNote) -> uuid.UUID:
+        if note.id is None:
+            note.id = uuid.uuid4()
+        self.notes.append(note)
+        return note.id

@@ -1,7 +1,7 @@
 """Add llm_cost_log table for tracking LLM provider spend
 
 Revision ID: d4e5f7a8b9ca
-Revises: c3d4e5f7a8b9
+Revises: e5f7a8b9c0d1
 Create Date: 2026-05-09
 
 Implements TICKET-020 cost tracking. Each ingestion logs Voyage embedding
@@ -23,7 +23,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "d4e5f7a8b9ca"
-down_revision = "c3d4e5f7a8b9"
+down_revision = "e5f7a8b9c0d1"
 branch_labels = None
 depends_on = None
 
