@@ -29,8 +29,9 @@ export function RunTriggerPanel({
   hasCandidates,
   className,
 }: RunTriggerPanelProps) {
-  const [docLabel, setDocLabel] = useState("AI tooling brief.pdf")
-  const [hnQuery, setHnQuery] = useState("AI tooling")
+  const [docLabel, setDocLabel] = useState("operator note")
+  const [docContent, setDocContent] = useState("")
+  const [hnQuery, setHnQuery] = useState("AI dev tooling")
   const [seedCount, setSeedCount] = useState(10)
   const [modeForKind, setModeForKind] = useState<Record<RunKind, RunMode>>({
     seed_ideas: "scripted",
@@ -47,9 +48,17 @@ export function RunTriggerPanel({
     const mode = modeForKind[kind]
     const input: Record<string, unknown> = {}
     if (kind === "seed_ideas") input.count = seedCount
-    if (kind === "document_upload") input.document_label = docLabel
+    if (kind === "document_upload") {
+      input.document_label = docLabel || "operator note"
+      input.content = docContent
+    }
     if (kind === "hn_search") input.query = hnQuery
     await onTrigger(kind, { mode, input })
+    if (kind === "document_upload" && mode === "real") {
+      // Clear the textarea after a successful real send so the operator
+      // can write the next message without manually clearing.
+      setDocContent("")
+    }
   }
 
   return (
@@ -70,8 +79,9 @@ export function RunTriggerPanel({
           const meta = RUN_KIND_META[kind]
           const isRunning = running === kind
           const disabled = running !== null
-          const realAvailable = kind === "contradiction_lens"
+          const realAvailable = kind !== "seed_ideas"
           const seedRequired = kind !== "seed_ideas" && !hasCandidates
+          const isWide = kind === "document_upload"
           return (
             <div
               key={kind}
@@ -79,6 +89,7 @@ export function RunTriggerPanel({
                 "rounded-lg border bg-muted/30 p-3 space-y-2 transition-colors",
                 isRunning && "border-amber-400/60 bg-amber-400/5",
                 seedRequired && "opacity-60",
+                isWide && "md:col-span-2",
               )}
             >
               <div className="flex items-center justify-between gap-2">
@@ -112,13 +123,30 @@ export function RunTriggerPanel({
                 />
               )}
               {kind === "document_upload" && (
-                <input
-                  type="text"
-                  value={docLabel}
-                  onChange={(e) => setDocLabel(e.target.value)}
-                  className="w-full rounded border bg-background px-2 py-1 text-xs"
-                  placeholder="document label"
-                />
+                <div className="space-y-1.5">
+                  <input
+                    type="text"
+                    value={docLabel}
+                    onChange={(e) => setDocLabel(e.target.value)}
+                    className="w-full rounded border bg-background px-2 py-1 text-xs"
+                    placeholder="label (e.g. founder interview · 2026-05)"
+                  />
+                  <textarea
+                    value={docContent}
+                    onChange={(e) => setDocContent(e.target.value)}
+                    className="w-full rounded border bg-background px-2 py-1.5 text-xs leading-relaxed font-mono min-h-[120px] resize-y"
+                    placeholder={
+                      modeForKind[kind] === "real"
+                        ? "paste a document, transcript, note, or chat message — the model will rescore existing ideas and surface new ones based on it"
+                        : "(scripted mode ignores content; just sets a label)"
+                    }
+                  />
+                  {modeForKind[kind] === "real" && !docContent.trim() && (
+                    <p className="text-[10px] text-amber-400">
+                      real mode needs content to integrate
+                    </p>
+                  )}
+                </div>
               )}
               {kind === "hn_search" && (
                 <input
@@ -132,7 +160,13 @@ export function RunTriggerPanel({
               <Button
                 size="sm"
                 className="w-full h-7 gap-1.5"
-                disabled={disabled || seedRequired}
+                disabled={
+                  disabled ||
+                  seedRequired ||
+                  (kind === "document_upload" &&
+                    modeForKind[kind] === "real" &&
+                    !docContent.trim())
+                }
                 onClick={() => void trigger(kind)}
               >
                 {isRunning ? (

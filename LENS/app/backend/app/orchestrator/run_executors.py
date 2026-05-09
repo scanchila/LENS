@@ -783,6 +783,11 @@ async def _exec_cross_domain_lens_real(
 # We feed the existing candidate list into the prompt as ground truth so
 # the model can rescore by id rather than restate.
 
+# OpenAI structured-output (used by Codex --output-schema) requires every
+# property listed in ``properties`` to also be in ``required``. Optional
+# fields are encoded as "always-passed but possibly empty/blank":
+#  - status: pass "" if no change
+#  - evidence_urls / pipeline_steps: pass [] if none
 _UPDATE_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -793,19 +798,24 @@ _UPDATE_SCHEMA: dict[str, Any] = {
             "items": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": ["candidate_id", "v_hat", "c_hat", "reason"],
+                "required": [
+                    "candidate_id",
+                    "v_hat",
+                    "c_hat",
+                    "status",
+                    "reason",
+                ],
                 "properties": {
                     "candidate_id": {"type": "string"},
                     "v_hat": {"type": "number"},
                     "c_hat": {"type": "number"},
                     "status": {
                         "type": "string",
-                        "enum": [
-                            "speculative",
-                            "supported",
-                            "challenged",
-                            "ready_to_validate",
-                        ],
+                        "description": (
+                            "speculative | supported | challenged | "
+                            "ready_to_validate; pass an empty string to "
+                            "leave status unchanged"
+                        ),
                     },
                     "reason": {"type": "string"},
                 },
@@ -834,16 +844,17 @@ _UPDATE_SCHEMA: dict[str, Any] = {
                     "v_hat",
                     "c_hat",
                     "reason",
+                    "evidence_urls",
+                    "pipeline_steps",
                 ],
                 "properties": {
                     "statement": {"type": "string"},
                     "lens": {
                         "type": "string",
-                        "enum": [
-                            "cross_domain_transfer",
-                            "contradiction_surfacing",
-                            "distance_from_focus",
-                        ],
+                        "description": (
+                            "cross_domain_transfer | "
+                            "contradiction_surfacing | distance_from_focus"
+                        ),
                     },
                     "v_hat": {"type": "number"},
                     "c_hat": {"type": "number"},
@@ -867,7 +878,7 @@ _UPDATE_SCHEMA: dict[str, Any] = {
 _HN_SYSTEM_PROMPT = textwrap.dedent(
     """\
     You are a research analyst running on the LENS opportunity-discovery
-    platform. Your job: search Hacker News for posts about the operator's
+    platform. Your job: Google for Hacker News discussion of the operator's
     query, read what real builders, founders, and engineers are saying,
     and use that evidence to update the operator's existing candidate
     list (rescoring v_hat / c_hat / status when the evidence supports or
@@ -875,20 +886,24 @@ _HN_SYSTEM_PROMPT = textwrap.dedent(
     operator hasn't seen yet.
 
     Methodology:
-    1. Use your web tools to search Hacker News (news.ycombinator.com or
-       hn.algolia.com) plus general web search for the query. Read the
-       top 10–20 results. Prefer threads from the last 90 days.
+    1. Run a normal Google web search such as
+       `<the operator's query> site:news.ycombinator.com` (and a couple
+       of variants — e.g. add "Show HN" or "Ask HN" if useful) to surface
+       the most relevant HN threads. Open and skim the top 5–15 results.
+       Prefer threads from the last 90 days when available.
     2. For each EXISTING candidate, decide if the evidence reinforces it
        (raise v_hat, raise c_hat), weakens it (lower scores), or kills
        it (move to kills with a clear reason).
     3. For genuinely new pain / contradiction / cross-domain patterns
        you found that are NOT already in the existing list, propose them
-       as new_candidates with citations (evidence_urls).
+       as new_candidates with citations (evidence_urls — the actual HN
+       thread URLs).
 
     Constraints:
     - v_hat, c_hat ∈ [0,1]. Be conservative — confidence should rise
       slowly with evidence; killing requires multiple sources.
-    - Cite at least one evidence_url per new candidate.
+    - Cite at least one evidence_url per new candidate. Use real URLs you
+      visited; do not invent any.
     - Don't restate or duplicate existing candidates as new ones.
     - The reason field should be 1–2 sentences; the operator reads it.
 
@@ -969,7 +984,7 @@ async def _run_codex_update_existing(
 
     agent = AgentDefinition(
         name="lens_update_existing",
-        role="lens_update_existing",
+        role="evidence_gatherer",
         system_prompt=system_prompt,
         tool_names=[],
         model=model_override or "gpt-5.5",
@@ -1026,7 +1041,21 @@ async def _run_codex_update_existing(
             new_c = max(0.0, min(1.0, float(upd.get("c_hat", cand.c_hat))))
         except (TypeError, ValueError):
             continue
-        new_status = upd.get("status") if isinstance(upd.get("status"), str) else cand.status
+        raw_status = upd.get("status")
+        if (
+            isinstance(raw_status, str)
+            and raw_status.strip()
+            and raw_status
+            in (
+                "speculative",
+                "supported",
+                "challenged",
+                "ready_to_validate",
+            )
+        ):
+            new_status = raw_status
+        else:
+            new_status = cand.status
         reason = str(upd.get("reason", reason_label))[:500]
         _apply_with_history(
             session,
@@ -1147,9 +1176,10 @@ async def _exec_hn_search_real(
 
         Hacker News query to investigate: "{query}"
 
-        Search HN (and the web for HN-discussed posts) for "{query}" and
-        adjacent threads. Read what builders are complaining about,
-        what's being shipped, and where the disagreements are. Then:
+        Run a Google search like `{query} site:news.ycombinator.com`
+        (and adjacent variants if helpful) and read the top HN threads
+        it surfaces. Read what builders are complaining about, what's
+        being shipped, and where the disagreements are. Then:
 
         - Update the existing candidates below using the evidence you
           found (raise/lower v_hat and c_hat; flip status when warranted).
