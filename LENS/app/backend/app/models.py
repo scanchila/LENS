@@ -479,3 +479,181 @@ class CandidatePublic(SQLModel):
 class CandidatesPublic(SQLModel):
     data: list[CandidatePublic]
     count: int
+
+
+# ---------------------------------------------------------------------------
+# LensSession / Run / CandidateChange — operator-driven flow
+# ---------------------------------------------------------------------------
+
+
+class LensSession(SQLModel, table=True):
+    """An operator-created investigation session.
+
+    Distinct from the legacy ``Candidate.session_id`` UUID, which the
+    11-stage demo uses as a free-form identifier with no backing row.
+    The new run-based flow persists a real LensSession row and uses its
+    id as the session_id on candidates it creates.
+    """
+
+    __tablename__ = "lens_sessions"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    owner_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="user.id",
+        nullable=True,
+        index=True,
+        ondelete="CASCADE",
+    )
+    title: str = Field(sa_column=Column(Text, nullable=False))
+    description: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    goal_query: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+class Run(SQLModel, table=True):
+    """One operator-triggered action against a LensSession.
+
+    A run is the unit of "what just happened" the UI shows in the
+    timeline. Each run that mutates candidates produces one or more
+    ``CandidateChange`` rows.
+    """
+
+    __tablename__ = "runs"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: uuid.UUID = Field(
+        foreign_key="lens_sessions.id",
+        nullable=False,
+        index=True,
+        ondelete="CASCADE",
+    )
+    kind: str = Field(sa_column=Column(Text, nullable=False))
+    status: str = Field(
+        default="pending",
+        sa_column=Column(Text, nullable=False, server_default="pending"),
+    )
+    mode: str = Field(
+        default="scripted",
+        sa_column=Column(Text, nullable=False, server_default="scripted"),
+    )
+    input: dict[str, Any] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
+    )
+    summary: dict[str, Any] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
+    )
+    error: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    started_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+    finished_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=True,
+    )
+
+
+class CandidateChange(SQLModel, table=True):
+    """Per-candidate diff produced by a run.
+
+    field_diffs is a mapping ``{field: {"from": old, "to": new}}``. Used
+    to render the per-idea history drawer.
+    """
+
+    __tablename__ = "candidate_changes"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    run_id: uuid.UUID = Field(
+        foreign_key="runs.id", nullable=False, index=True, ondelete="CASCADE"
+    )
+    candidate_id: uuid.UUID = Field(
+        foreign_key="candidates.id",
+        nullable=False,
+        index=True,
+        ondelete="CASCADE",
+    )
+    change_kind: str = Field(sa_column=Column(Text, nullable=False))
+    field_diffs: dict[str, Any] = Field(
+        default_factory=dict,
+        sa_column=Column(JSONB, nullable=False, server_default="{}"),
+    )
+    reason: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+# Read models
+
+
+class LensSessionPublic(SQLModel):
+    id: uuid.UUID
+    title: str
+    description: str | None
+    goal_query: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class LensSessionsPublic(SQLModel):
+    data: list[LensSessionPublic]
+    count: int
+
+
+class RunPublic(SQLModel):
+    id: uuid.UUID
+    session_id: uuid.UUID
+    kind: str
+    status: str
+    mode: str
+    input: dict[str, Any]
+    summary: dict[str, Any]
+    error: str | None
+    started_at: datetime
+    finished_at: datetime | None
+
+
+class RunsPublic(SQLModel):
+    data: list[RunPublic]
+    count: int
+
+
+class CandidateChangePublic(SQLModel):
+    id: uuid.UUID
+    run_id: uuid.UUID
+    candidate_id: uuid.UUID
+    change_kind: str
+    field_diffs: dict[str, Any]
+    reason: str | None
+    created_at: datetime
+
+
+class CandidateHistoryPublic(SQLModel):
+    candidate_id: uuid.UUID
+    changes: list[CandidateChangePublic]
+    runs: dict[str, RunPublic]  # run_id -> RunPublic for join-free render
+
+
+class RunDetailPublic(SQLModel):
+    run: RunPublic
+    changes: list[CandidateChangePublic]

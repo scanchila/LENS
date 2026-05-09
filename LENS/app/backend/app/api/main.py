@@ -6,6 +6,7 @@ from app.api.routes import (
     documents,
     events,
     lens_run,
+    lens_sessions,
     login,
     private,
     sessions,
@@ -24,6 +25,7 @@ api_router.include_router(candidates.router)
 api_router.include_router(events.router)
 api_router.include_router(demo_replay.router)
 api_router.include_router(lens_run.router)
+api_router.include_router(lens_sessions.router)
 
 
 if settings.ENVIRONMENT == "local":

@@ -32,6 +32,7 @@ CHANNELS = (
     "dossier_ready",
     "candidate_updated",
     "pending_user_questions",
+    "run_updated",
 )
 
 

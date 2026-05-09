@@ -35,20 +35,31 @@ function Dashboard() {
       <div className="rounded-xl border bg-card/60 p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Watch it get smarter</h2>
+            <h2 className="text-lg font-semibold">Run-based investigation</h2>
             <p className="text-sm text-muted-foreground max-w-2xl">
-              The demo arc is staged: cold start, drop corpora, queue evidence
-              dossiers, run adversarial review, reveal the YC benchmark, and
-              open the opportunity brief. Press <span className="font-mono">Next</span>{" "}
-              to advance one stage at a time.
+              Create a session, then trigger discrete runs against it: seed
+              ideas, upload a document, scan Hacker News, run the contradiction
+              lens. Each run records its per-candidate diff so you can see
+              exactly how every idea evolved.
             </p>
           </div>
-          <Button asChild>
-            <Link to="/board/$sessionId" params={{ sessionId: DEMO_SESSION_ID }} className="gap-1.5">
-              Open prediction board
-              <ArrowRight className="size-4" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild>
+              <Link to="/lens-sessions" className="gap-1.5">
+                Sessions
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link
+                to="/board/$sessionId"
+                params={{ sessionId: DEMO_SESSION_ID }}
+                className="gap-1.5"
+              >
+                Demo replay
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-4">

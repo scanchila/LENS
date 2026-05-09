@@ -16,7 +16,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutLensSessionsRouteImport } from './routes/_layout/lens-sessions'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutLensSessionsSessionIdRouteImport } from './routes/_layout/lens-sessions.$sessionId'
 import { Route as LayoutBoardSessionIdRouteImport } from './routes/_layout/board.$sessionId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -53,11 +55,22 @@ const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutLensSessionsRoute = LayoutLensSessionsRouteImport.update({
+  id: '/lens-sessions',
+  path: '/lens-sessions',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutLensSessionsSessionIdRoute =
+  LayoutLensSessionsSessionIdRouteImport.update({
+    id: '/$sessionId',
+    path: '/$sessionId',
+    getParentRoute: () => LayoutLensSessionsRoute,
+  } as any)
 const LayoutBoardSessionIdRoute = LayoutBoardSessionIdRouteImport.update({
   id: '/board/$sessionId',
   path: '/board/$sessionId',
@@ -71,8 +84,10 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/lens-sessions': typeof LayoutLensSessionsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/board/$sessionId': typeof LayoutBoardSessionIdRoute
+  '/lens-sessions/$sessionId': typeof LayoutLensSessionsSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -80,9 +95,11 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/lens-sessions': typeof LayoutLensSessionsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
   '/board/$sessionId': typeof LayoutBoardSessionIdRoute
+  '/lens-sessions/$sessionId': typeof LayoutLensSessionsSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -92,9 +109,11 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/lens-sessions': typeof LayoutLensSessionsRouteWithChildren
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/board/$sessionId': typeof LayoutBoardSessionIdRoute
+  '/_layout/lens-sessions/$sessionId': typeof LayoutLensSessionsSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,8 +124,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/lens-sessions'
     | '/settings'
     | '/board/$sessionId'
+    | '/lens-sessions/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -114,9 +135,11 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/lens-sessions'
     | '/settings'
     | '/'
     | '/board/$sessionId'
+    | '/lens-sessions/$sessionId'
   id:
     | '__root__'
     | '/_layout'
@@ -125,9 +148,11 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/lens-sessions'
     | '/_layout/settings'
     | '/_layout/'
     | '/_layout/board/$sessionId'
+    | '/_layout/lens-sessions/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,12 +214,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/lens-sessions': {
+      id: '/_layout/lens-sessions'
+      path: '/lens-sessions'
+      fullPath: '/lens-sessions'
+      preLoaderRoute: typeof LayoutLensSessionsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/_layout/lens-sessions/$sessionId': {
+      id: '/_layout/lens-sessions/$sessionId'
+      path: '/$sessionId'
+      fullPath: '/lens-sessions/$sessionId'
+      preLoaderRoute: typeof LayoutLensSessionsSessionIdRouteImport
+      parentRoute: typeof LayoutLensSessionsRoute
     }
     '/_layout/board/$sessionId': {
       id: '/_layout/board/$sessionId'
@@ -206,8 +245,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface LayoutLensSessionsRouteChildren {
+  LayoutLensSessionsSessionIdRoute: typeof LayoutLensSessionsSessionIdRoute
+}
+
+const LayoutLensSessionsRouteChildren: LayoutLensSessionsRouteChildren = {
+  LayoutLensSessionsSessionIdRoute: LayoutLensSessionsSessionIdRoute,
+}
+
+const LayoutLensSessionsRouteWithChildren =
+  LayoutLensSessionsRoute._addFileChildren(LayoutLensSessionsRouteChildren)
+
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutLensSessionsRoute: typeof LayoutLensSessionsRouteWithChildren
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutBoardSessionIdRoute: typeof LayoutBoardSessionIdRoute
@@ -215,6 +266,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutLensSessionsRoute: LayoutLensSessionsRouteWithChildren,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutBoardSessionIdRoute: LayoutBoardSessionIdRoute,

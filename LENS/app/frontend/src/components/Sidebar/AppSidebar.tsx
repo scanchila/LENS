@@ -1,4 +1,4 @@
-import { Activity, Home, Users } from "lucide-react"
+import { Activity, FolderKanban, Home, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -16,7 +16,8 @@ const DEMO_SESSION_ID = "00000000-0000-4000-8000-000000000001"
 
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/" },
-  { icon: Activity, title: "Prediction board", path: `/board/${DEMO_SESSION_ID}` },
+  { icon: FolderKanban, title: "Sessions", path: "/lens-sessions" },
+  { icon: Activity, title: "Demo replay", path: `/board/${DEMO_SESSION_ID}` },
 ]
 
 export function AppSidebar() {
