@@ -1,0 +1,177 @@
+[
+  {
+    "principle_name": "Memoization",
+    "domain": "computer science / algorithms",
+    "description": "Caching the result of a deterministic computation keyed by its inputs, so repeated calls with the same inputs return instantly without recomputing. Trades memory for time.",
+    "structural_signature": "A pure function with bounded input space whose evaluation is expensive relative to the cost of looking up a cached result; same inputs always produce the same output; cache invalidation is unnecessary because results never go stale.",
+    "canonical_examples": [
+      "Recursive Fibonacci with a memo table (O(2^n) → O(n))",
+      "HTTP response caching keyed by URL + headers",
+      "React's useMemo and useCallback hooks",
+      "Database materialized views"
+    ],
+    "cross_domain_examples": [
+      "Medical diagnostics: lookup tables for treatment decisions when patient signature matches a previously-analyzed case",
+      "Legal: brief libraries indexed by case features; retrieval substitutes for re-research",
+      "Manufacturing: jig fixtures preserve tooling setups so the same part doesn't need re-tooling",
+      "Education: spaced-repetition flashcards memoize prior cognitive work the learner has done"
+    ],
+    "references": [
+      "Michie, D. (1968). 'Memo' Functions and Machine Learning. Nature 218.",
+      "Cormen et al., Introduction to Algorithms, Ch. 15 (Dynamic Programming)"
+    ]
+  },
+  {
+    "principle_name": "Lazy evaluation",
+    "domain": "programming languages / computation",
+    "description": "Defer computing a value until its result is actually needed. Composes naturally: large or even infinite intermediate structures can be expressed and traversed without ever fully materializing.",
+    "structural_signature": "A composable description of a computation is decoupled from its execution; consumers pull only what they need; producers can describe arbitrarily large or unbounded structures cheaply.",
+    "canonical_examples": [
+      "Haskell's pervasive lazy evaluation",
+      "Python generators and itertools",
+      "Database query planners (lazy until materialization)",
+      "JavaScript Promise chains (deferred execution)"
+    ],
+    "cross_domain_examples": [
+      "Just-in-time manufacturing: produce only what's pulled by demand, not what's pushed by capacity",
+      "Open-source release engineering: lazy compilation of release notes until the cut",
+      "Litigation discovery: produce only documents responsive to specific requests, not the entire data lake"
+    ],
+    "references": [
+      "Henderson & Morris (1976). A Lazy Evaluator. POPL.",
+      "Bird & Wadler, Introduction to Functional Programming"
+    ]
+  },
+  {
+    "principle_name": "Layered abstraction",
+    "domain": "software architecture",
+    "description": "Express a complex system as a stack of layers, each providing a clean interface to the layer above and depending only on the layer below. Lets each layer evolve independently as long as its contract holds.",
+    "structural_signature": "Concerns at different levels of abstraction can be separated; each layer's complexity is hidden behind an interface narrower than its implementation; layers depend downward only.",
+    "canonical_examples": [
+      "OSI / TCP/IP networking stack",
+      "Operating system kernel ↔ syscalls ↔ libc ↔ application",
+      "Database storage engines beneath SQL beneath ORM",
+      "GPU shading: hardware ↔ driver ↔ shader language ↔ engine"
+    ],
+    "cross_domain_examples": [
+      "Banking: settlement layer ↔ payment rails ↔ wallet interfaces; each can be swapped without touching the others",
+      "Construction: foundation ↔ structure ↔ envelope ↔ fit-out; trades work in their layer",
+      "Government: constitution ↔ statutes ↔ regulations ↔ guidance; each level hides the one below from the level above",
+      "Education curricula: standards ↔ courses ↔ lessons ↔ exercises"
+    ],
+    "references": [
+      "Dijkstra, E. (1968). The Structure of the THE Multiprogramming System. CACM 11.",
+      "Parnas (1972). On the Criteria to Be Used in Decomposing Systems into Modules"
+    ]
+  },
+  {
+    "principle_name": "Pipelines with backpressure",
+    "domain": "concurrent systems / data engineering",
+    "description": "Connect a sequence of processing stages so that each stage signals upstream when it cannot keep up; producers slow down rather than overwhelming consumers. Avoids unbounded queueing and the catastrophic failures it produces.",
+    "structural_signature": "A producer-consumer chain where upstream throughput exceeds downstream throughput at least sometimes; losing data is unacceptable; queues exist but must be bounded; the system must remain stable under load.",
+    "canonical_examples": [
+      "Reactive Streams (Akka, RxJava, Project Reactor)",
+      "Unix pipes with blocking writes",
+      "Kafka consumer groups with controlled fetch rates",
+      "TCP flow control via window size"
+    ],
+    "cross_domain_examples": [
+      "Hospital triage: ER signals upstream (ambulances diverted) when capacity is exceeded — pipeline backpressure for bodies",
+      "Restaurant kitchens: 'on the fly' tickets vs. 'in the weeds' — expediter signals backpressure to the front",
+      "Aviation: ground-stop programs are FAA backpressure to the flight network",
+      "Customer support: queue length thresholds trigger upstream rate-limits on signups"
+    ],
+    "references": [
+      "Reactive Manifesto (https://www.reactivemanifesto.org/)",
+      "Kleppmann, Designing Data-Intensive Applications, Ch. 11"
+    ]
+  },
+  {
+    "principle_name": "Idempotence",
+    "domain": "distributed systems",
+    "description": "Design operations so applying them N times has the same effect as applying them once. Critical when networks may retry, duplicate, or reorder messages: idempotence makes 'at-least-once' delivery functionally equivalent to 'exactly-once'.",
+    "structural_signature": "An operation is invoked across an unreliable channel; retries are cheaper than tracking exactly-once delivery; the operation's semantic effect can be expressed as a state transition that repeats safely.",
+    "canonical_examples": [
+      "HTTP PUT and DELETE methods",
+      "Database UPSERT / ON CONFLICT DO UPDATE",
+      "Stripe's Idempotency-Key header on payment intents",
+      "Kafka transactional producer with deduplication"
+    ],
+    "cross_domain_examples": [
+      "Voting: design ballots so a re-submitted ballot replaces, doesn't add to, the prior one",
+      "Procurement: PO confirmations are idempotent — re-sending doesn't double-order",
+      "Pharmacy: refill requests with explicit Rx number and date are idempotent against the prescription",
+      "Tax filing: amended returns supersede prior returns, not duplicate"
+    ],
+    "references": [
+      "Helland, P. (2012). Idempotence Is Not a Medical Condition. CIDR.",
+      "Fowler, Patterns of Enterprise Application Architecture"
+    ]
+  },
+  {
+    "principle_name": "Eventual consistency",
+    "domain": "distributed systems",
+    "description": "Relax the requirement that all replicas of data agree at every moment; instead guarantee that, absent new updates, replicas converge to the same state eventually. Buys availability and partition-tolerance at the cost of read-your-writes invariants.",
+    "structural_signature": "A system where availability and partition tolerance matter more than instantaneous global agreement; users tolerate stale reads in exchange for the system staying up; convergence (not immediacy) is the consistency contract.",
+    "canonical_examples": [
+      "DNS propagation",
+      "Amazon Dynamo and DynamoDB",
+      "Git's distributed commit model",
+      "Email with eventual delivery via SMTP relays"
+    ],
+    "cross_domain_examples": [
+      "Land registries with regional offices: changes propagate, queries may be stale during propagation",
+      "Inventory across retail stores: per-store counts converge through nightly reconciliation",
+      "Medical records across providers: HIE eventual consistency rather than real-time global view",
+      "Standards bodies: drafts propagate through committees and converge on a published version"
+    ],
+    "references": [
+      "Brewer, E. (2000). Towards Robust Distributed Systems (CAP theorem keynote)",
+      "Bailis & Ghodsi (2013). Eventual Consistency Today: Limitations, Extensions, and Beyond"
+    ]
+  },
+  {
+    "principle_name": "Novelty search",
+    "domain": "evolutionary computation / open-ended search",
+    "description": "Optimize for novelty (distance from previously-seen behaviors) rather than for an objective function. Counterintuitively, this often beats objective-based search on hard problems where the objective lies behind a deceptive fitness landscape.",
+    "structural_signature": "A search problem where direct progress toward the objective is deceptive (intermediate steps look bad even when on the right track); the space of behaviors is large but bounded; novelty can be measured (e.g. behavioral distance).",
+    "canonical_examples": [
+      "Lehman & Stanley's biped-walking and maze experiments",
+      "POET (paired open-ended trailblazer): co-evolving environments and agents",
+      "AlphaGo's self-play exploring novel openings",
+      "Quality-Diversity / MAP-Elites algorithms"
+    ],
+    "cross_domain_examples": [
+      "VC portfolio construction: fund the unfundable to find the things consensus misses",
+      "Drug discovery: combinatorial libraries explore chemical-space novelty rather than optimizing one scaffold",
+      "Editorial: assigning reporters to under-covered beats rather than chasing the news cycle",
+      "Hiring: deliberately interview candidates outside the typical profile to discover signals the screening rubric misses"
+    ],
+    "references": [
+      "Lehman & Stanley (2011). Abandoning Objectives: Evolution Through the Search for Novelty Alone. Evolutionary Computation 19(2).",
+      "Stanley & Lehman (2015). Why Greatness Cannot Be Planned (book)"
+    ]
+  },
+  {
+    "principle_name": "Content-addressable storage",
+    "domain": "storage systems / cryptography",
+    "description": "Address data by a hash of its contents rather than by an externally-assigned identifier. Identical content has identical address; deduplication is automatic; integrity is verifiable; references are immutable.",
+    "structural_signature": "A system where data identity is defined by content rather than location; integrity verification is needed; deduplication is valuable; references should not break when storage layout changes.",
+    "canonical_examples": [
+      "Git's object database (commits, trees, blobs all hash-addressed)",
+      "IPFS / IPLD",
+      "Docker image layers",
+      "Bitcoin transaction inputs (TXIDs)"
+    ],
+    "cross_domain_examples": [
+      "Academic publishing: DOI-by-content (rather than journal-issue-page) would auto-dedupe and preserve integrity through reformatting",
+      "Legal evidence chain-of-custody: hash-addressing exhibits eliminates 'is this the original' disputes",
+      "Visual art provenance: NFTs are content-addressed art records, well or poorly executed",
+      "Scientific data sharing: dataset-by-content-hash makes reproducibility a property of the address"
+    ],
+    "references": [
+      "Merkle, R. (1979). Secrecy, authentication and public key systems (Stanford PhD thesis)",
+      "Levin (1973). Universal sequential search problems"
+    ]
+  }
+]
