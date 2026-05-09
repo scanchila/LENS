@@ -4,6 +4,8 @@ LENS is a multi-agent problem-discovery system for finding non-obvious, grounded
 
 The name expands to **Latent Evidence and Need Scanner**. The core idea is that important problems often show up first as weak signals scattered across research papers, founder conversations, forums, technical shifts, and adjacent domains. LENS applies several reasoning lenses to those signals, challenges the resulting candidates, and builds a provenance trail so users can see why a problem is worth attention.
 
+The product thesis is deliberately narrower than "AI idea generation": LENS helps venture builders, startup studios, and thesis-driven investors turn messy public and private signals into evidence-backed opportunity briefs. The user still makes the judgment call; LENS compresses the research loop, exposes weak assumptions, and helps decide which problems deserve validation time.
+
 This repository is currently a hackathon-stage implementation. The code is real, but the product surface is still moving quickly.
 
 ## What LENS Does
@@ -17,6 +19,42 @@ LENS is designed to answer questions like:
 
 The first benchmark domain is **YC Requests for Startups prediction**. YC periodically publishes areas it wants founders to pursue. LENS uses only pre-cutoff public material, generates RFS-style predictions, and scores precision, recall, excess predictions, and provenance quality against the later published list.
 
+## Theoretical Frame
+
+LENS treats opportunity discovery as an evidence-ranking and falsification workflow.
+
+The basic unit is a **candidate problem**: a hypothesis that a specific actor experiences a costly gap between a current state and a desired state, and that the gap may be tractable, neglected, non-obvious, and worth validating now. Candidates are not accepted as opportunities until they survive source tracing, scoring, adversarial review, and explicit assumption checks.
+
+The local research corpus grounds this framing in seven source traditions:
+
+- Hamming on important problems, prepared minds, and plausible attacks
+- Paul Graham on organic startup ideas, urgent users, and noticing gaps
+- 80,000 Hours on scale, neglectedness, solvability, and fit
+- Rittel and Webber on wicked problems and unstable formulations
+- Lehman and Stanley on novelty search and deceptive objectives
+- Lakatos on progressive versus degenerating research programs
+- DARPA's Heilmeier catechism and Wing's computational thinking as proposal-review and cross-domain-transfer scaffolds
+
+See [LENS theoretical framework](LENS/THEORY.md) for formal definitions of sources, traces, claims, signals, candidate problems, scoring components, candidate lifecycle states, lenses, opportunity briefs, and benchmark metrics.
+
+## Customer and User Thesis
+
+The primary customer hypothesis is a **startup studio or venture builder**: a partner, studio lead, or head of incubation with budget responsibility for deciding which opportunities deserve team and capital allocation.
+
+The primary user is a **venture analyst, founder-in-residence, EIR, or thesis researcher** who operates the investigation board, uploads or selects corpora, reviews evidence, challenges candidates, and turns surviving candidates into briefs for partner review.
+
+Secondary customer hypotheses are early-stage VC funds, corporate innovation teams, accelerators, and solo founders. They are plausible, but the startup studio wedge is the cleanest because opportunity selection is repeated, expensive, and close to the organization's core workflow.
+
+LENS is valuable if it is perceived as a decision-support system that reduces wasted exploration and improves thesis quality. It is weak if it is perceived as a polished AI brainstormer.
+
+The core paid artifacts are:
+
+- Evidence-backed opportunity briefs
+- Candidate status changes: speculative, supported, challenged, killed, or ready to validate
+- Source traces, contradiction notes, and adversarial review history
+- Recommended next validation steps
+- A reusable private corpus that compounds over repeated runs
+
 ## Product Shape
 
 The intended user experience is a streaming investigation board:
@@ -28,8 +66,11 @@ The intended user experience is a streaming investigation board:
 5. Challenger and Skeptic agents attack weak claims and provenance gaps.
 6. A synthesizer merges duplicates and surfaces reinforced opportunities.
 7. The user sees a ranked set of problem candidates plus the reasoning path.
+8. Surviving candidates can be exported as opportunity briefs with open assumptions and next validation steps.
 
 The demo version emphasizes live state changes: candidates added, scores updated, candidates killed, dossiers completed, and evidence graphs becoming available.
+
+The paid workflow should emphasize killed candidates as much as promising ones. A candidate that dies early saves founder, analyst, and partner time; that is part of the ROI.
 
 ## Architecture
 
@@ -110,7 +151,9 @@ Still in progress:
 .
 ├── README.md                     Project overview
 ├── LENS/
+│   ├── THEORY.md                  Formal definitions and source-grounded theory
 │   ├── IMPLEMENTATION_PLAN.md     Detailed architecture and phased plan
+│   ├── DEMO_PLAN.md               Demo narrative, runbook, and product thesis
 │   ├── app/                       Full-stack application
 │   │   ├── README.md              App-specific map and Phase 0 status
 │   │   ├── backend/               FastAPI service and agent runtime

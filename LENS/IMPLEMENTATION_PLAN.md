@@ -2,6 +2,8 @@
 
 A buildable plan for the multi-agent problem-discovery system. The plan is structured as: framework decision → multi-agent role taxonomy → tool catalog → storage layer → full-loop architecture → framework abstraction interface → phased build plan → framework comparison.
 
+The formal product vocabulary and source-grounded theory live in [`THEORY.md`](THEORY.md). Use that document as the canonical definition of sources, traces, claims, signals, candidate problems, scoring components, lifecycle states, lenses, opportunity briefs, and benchmark metrics.
+
 The architectural commitments behind this plan come from earlier design conversations and are encoded in `~/.claude/projects/.../memory/`. Re-read those before substantial revisions.
 
 ---
@@ -574,6 +576,7 @@ UI surface, multi-tenant auth, billing, deployment, observability stack, etc. Ou
 | 8 | Lenses for hackathon | **Cross-domain transfer + Contradiction surfacing + Distance-from-focus.** Counterfactual perturbation deferred to Phase 3. Selection optimizes for visible surprise in the demo (cross-domain) and breadth of input signal (the other two). |
 | 9 | Demo architecture | **Streaming/incremental flow** with dirty-set partial re-eval. Each new doc invalidates affected candidates; orchestrator re-runs Challenger/Synthesizer on the dirty subset. Postgres `LISTEN/NOTIFY` → SSE → frontend diff feed. CAR ticket panel embedded in the demo board shows pending → running → complete dossier work in real time. |
 | 10 | Demo benchmark anchor | **YC RFS Summer 2026 prediction as headline; founder/investor use case as 30-sec interactive coda.** See Section 11 for the stage-by-stage demo arc. |
+| 11 | Customer / user thesis | **Primary customer: startup studios and venture builders. Primary user: venture analysts, EIRs, founders-in-residence, and thesis researchers.** LENS is positioned as a decision-support system for opportunity discovery, not an AI idea generator. The paid artifact is an evidence-backed opportunity brief with source traces, challenge history, open assumptions, and next validation steps. |
 
 ---
 
@@ -625,6 +628,32 @@ This gives us a credible benchmark to defend the "deep tech, rigorous" positioni
 
 This section is the consolidated hackathon-scope cut of the long-term plan above. The long-term plan is canonical for design intent; this section is canonical for what we ship in the next 72 hours.
 
+The full demo runbook, audience narrative, objection handling, rehearsal checklist, and opportunity brief template live in [`DEMO_PLAN.md`](DEMO_PLAN.md). Keep that document canonical for demo planning; keep this section focused on implementation scope and architecture.
+
+### 11.0 Product thesis for the demo
+
+The commercial story must be visible in the demo, not only in the pitch deck.
+
+**Customer hypothesis:** startup studios and venture builders pay because choosing the wrong opportunity burns founder time, analyst time, partner attention, and capital. A system that kills weak opportunities earlier and turns stronger ones into sourced briefs can replace part of the existing research loop.
+
+**User hypothesis:** analysts, EIRs, founders-in-residence, and thesis researchers use the board to move candidates through a review lifecycle: `speculative` → `supported` → `challenged` → `ready_to_validate`, or `killed`.
+
+**What they pay for:**
+- Faster thesis research and opportunity memo creation
+- Broader weak-signal coverage across public and private corpora
+- Fewer bad opportunities entering partner review
+- Evidence-backed discussion artifacts, not raw AI suggestions
+- A private corpus that compounds as studio notes, founder calls, and market research accumulate
+
+**Why they might not pay, and product answers:**
+- If outputs feel speculative, show candidate status, kill weak candidates visibly, and attach next validation steps.
+- If they distrust AI judgment, make provenance, contradiction checks, and Challenger outcomes first-class UI elements.
+- If they already do this manually, position LENS as compression and coverage for their existing thesis workflow.
+- If value is hard to measure, report hours saved, candidates killed, sourced briefs produced, and partner-rated "worth exploring" decisions per run.
+- If the product feels like AI novelty, compare generic brainstorm output against a challenged, source-backed opportunity brief.
+
+The demo should therefore end on a concrete artifact: at least one surviving candidate rendered as an opportunity brief that a venture team could discuss in a review meeting.
+
 ### 11.1 Demo arc — "watch it get smarter"
 
 The hackathon's signature surprise is a live, streaming prediction board where the system visibly improves as data flows in. The demo runs the YC RFS Summer 2026 prediction with all ingested data restricted to ≤ 2026-05-03, then reveals the actual published list at the end and scores the curve.
@@ -638,20 +667,21 @@ The hackathon's signature surprise is a live, streaming prediction board where t
 | 1:45 | **Drop 200 founder-interview transcripts** (synthetic but plausible blob) | Synthesizer detects 3-way reinforcement; second high-V̂ candidate emerges; second CAR ticket queued. |
 | 2:00 | **First CAR dossier completes** (pre-warmed against the demo corpus to fit timing) | Side panel: ticket flips `complete`. Candidate gets `📚 12 sources` badge. V̂ jumps 0.78 → 0.91. AGE graph traversal becomes live in subsequent agent calls. |
 | 2:30 | **Synthesizer re-runs over populated graph** | Cross-candidate AGE query reveals two candidates share 4 evidence sources. They merge into one stronger prediction. |
-| 2:45 | **Challenger pass live.** | Three weak (non-dossiered) candidates get red-struck. Skeptic flags one for unsourced claim. One dossiered candidate earns `✓ challenged & held` badge. |
+| 2:45 | **Challenger pass live.** | Three weak (non-dossiered) candidates get red-struck. Skeptic flags one for unsourced claim. One dossiered candidate earns `✓ challenged & held` badge and advances to `ready_to_validate`. |
 | 3:15 | **Reveal: actual YC Summer 2026 RFS.** | Side-by-side. Score precision/recall at each stage. Curve: 20% → 35% → 55% → 70% as data and dossiers grew. |
 | 3:45 | **The kicker — "ahead of YC" excess.** | Highlight 2–3 predictions the system made that *weren't* on YC's list but match emerging signals. Frame as leading indicators, not noise. |
-| 4:00 | **Interactive coda** — judge persona ("indie hacker into climate") drops a personal interest doc | Same board re-instances. Runs the loop in 30 seconds against the persona's interest. Shows the YC benchmark is one instance, not a parlor trick. |
+| 4:00 | **Interactive coda** — judge persona ("indie hacker into climate") drops a personal interest doc | Same board re-instances. Runs the loop in 30 seconds against the persona's interest. Shows the YC benchmark is one instance, not a parlor trick. Final click opens an opportunity brief with evidence, assumptions, and next validation steps. |
 
 The visual surprise is the **diff feed** (Twitter-like stream of state changes) and the **CAR side panel** (the system visibly outsourcing deep work). Together they make the system's reasoning legible — and demonstrate judgment about *when* to invest deeply.
 
 ### 11.2 Architectural additions for the demo
 
-The long-term plan (Section 5) is one-shot: ingest → run pipeline → return ranked list. The demo requires an incremental, streaming flow. Three additions:
+The long-term plan (Section 5) is one-shot: ingest → run pipeline → return ranked list. The demo requires an incremental, streaming flow. Four additions:
 
 1. **Dirty-set partial re-eval orchestrator.** Each new doc invalidates only candidates whose evidence overlaps. Re-runs Challenger / Synthesizer / Critic on the dirty subset, not the full pipeline. Avoids the "looks like a batch rerun" anti-feel.
 2. **Postgres `LISTEN/NOTIFY` → SSE diff feed.** Every state change (candidate added, V̂ updated, killed, merged, dossier ready) publishes to a Postgres channel. Frontend subscribes via Server-Sent Events. Drives both the prediction board and the diff feed.
 3. **CAR ticket panel embed.** The demo board reserves a side panel that mirrors `.codex-autorunner/tickets/` state — pending / running / complete. Users see the system queueing and completing deep-research tickets in real time. Architecturally, this is just CAR's existing web UI in an iframe, plus a tiny shim that filters to the current session's tickets.
+4. **Opportunity brief export.** Surviving candidates render into a compact review artifact: problem statement, who has the pain, evidence sources, contradictory signals, why now, open assumptions, and recommended validation path.
 
 ### 11.3 Cuts from the long-term plan
 
@@ -695,6 +725,8 @@ Driven by CAR + Hermes during the build. Numbers leave gaps for follow-ups per C
 | 090 | Prediction board frontend: V̂/Ĉ bars, lens chips, diff feed, ranking | |
 | 091 | YC live benchmark scoring widget (precision/recall against held-out RFS) | |
 | 092 | CAR side-panel embed in demo board | iframe + filter shim |
+| 093 | Candidate lifecycle UI | Statuses: `speculative`, `supported`, `challenged`, `ready_to_validate`, `killed`; status changes appear in diff feed |
+| 094 | Opportunity brief view/export | Problem, user/customer hypothesis, evidence, contradictions, open assumptions, next validation steps |
 | 100 | Pre-bake 4–5 corpus bundles (YC history, HN top, arXiv, Stratechery, founder transcripts) | Pre-chunked, pre-embedded |
 | 105 | Pre-warm CAR dossiers on demo corpus before live run | So Stage 2:00 timing works |
 | 110 | YC Summer 2026 RFS ground truth fixture + evaluation script | |
@@ -708,7 +740,7 @@ Driven by CAR + Hermes during the build. Numbers leave gaps for follow-ups per C
 | **Day 1 PM → night** | Tickets 001–048 (scaffold, storage, framework abstraction, basic tools, CAR integration plumbing). CAR runs overnight. |
 | **Day 2 AM** | Review what shipped. Hand-tune Lens-Proposer prompts. |
 | **Day 2 day** | Tickets 050–062 (the three Lens-Proposers, Challenger, Synthesizer, Critic). |
-| **Day 2 night** | Tickets 070–092 (the architectural punchline — dirty-set re-eval + diff feed + UI). |
+| **Day 2 night** | Tickets 070–094 (the architectural punchline — dirty-set re-eval + diff feed + UI, plus lifecycle and brief views). |
 | **Day 3 AM** | Tickets 100–110 (pre-baked corpora, CAR dossier pre-warm, YC ground truth). Demo dry-runs. |
 | **Day 3 PM** | Polish visual surprise moments (cross-domain 💡 chip, dossier badges, "ahead of YC" badge). Record fallback video. |
 
@@ -721,6 +753,8 @@ Driven by CAR + Hermes during the build. Numbers leave gaps for follow-ups per C
 | Dirty-set re-eval has subtle correctness bugs | Ship it with an explicit "full re-eval" fallback button. If demo goes sideways, switch modes and absorb the slower feel. |
 | CAR side-panel iframe feels disconnected from the main board | Style the panel to match the prediction board's design language. Animate transitions in/out. Have a recorded fallback that shows the same flow without the iframe. |
 | Ahead-of-YC excess predictions are pure hallucinations on the day | Pre-vet excess predictions during dry-runs. Have 2–3 hand-picked excess predictions queued as "if the live run produces these, lean into them; else fall back to these prepared examples." |
+| Audience reads LENS as an AI idea generator | End on an opportunity brief, not a list of ideas. Show killed candidates, source traces, contradiction handling, and next validation steps. |
+| Buyer value feels hard to measure | During dry-run, capture counts for candidates generated, candidates killed, dossier-backed briefs produced, and time-to-brief versus manual research. |
 | Hermes setup is fragile | Codex is the safe fallback — JSON-RPC stable, well-documented in CAR. Reconfigure if needed; lose memory continuity but keep delivery. |
 
 ### 11.7 Demo success criteria
@@ -731,3 +765,4 @@ The demo succeeds if all of the following are true:
 3. The precision/recall curve against actual Summer 2026 RFS climbs monotonically across stages, ending ≥60% precision on top-10 predictions.
 4. At least one "ahead of YC" excess prediction is defensible — the audience can be shown a real-world signal supporting it.
 5. The interactive coda for a judge persona produces at least one prediction the judge finds genuinely interesting (subjective, but the moment that converts skeptics).
+6. At least one surviving candidate is shown as an opportunity brief with evidence, contradictions, open assumptions, and next validation steps.

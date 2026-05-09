@@ -2,6 +2,7 @@
 LENS/research/*
 LENS/codex-autorunner/
 car-hub/
+agent_memories/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -225,3 +226,5 @@ __marimo__/
 .streamlit/secrets.toml
 
 .venvs/*
+.codex-autorunner/state.sqlite3
+.codex-autorunner/*
