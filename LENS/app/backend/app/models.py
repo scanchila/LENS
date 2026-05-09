@@ -6,6 +6,7 @@ from typing import Any
 from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from pydantic import EmailStr
 from sqlalchemy import (
+    ARRAY,
     Column,
     DateTime,
     Integer,
@@ -15,6 +16,7 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 from sqlmodel import Field, SQLModel
 
 
@@ -315,3 +317,165 @@ class AnswerQuestionRequest(SQLModel):
 
     question_id: uuid.UUID
     answer: str
+
+
+# ---------------------------------------------------------------------------
+# Candidates (TICKET-050) — the demo's load-bearing store
+# ---------------------------------------------------------------------------
+
+
+CANDIDATE_STATUSES = (
+    "speculative",
+    "supported",
+    "challenged",
+    "ready_to_validate",
+    "killed",
+    "merged_into",
+)
+
+
+CHALLENGER_VERDICTS = (
+    "kept",
+    "red_struck",
+    "needs_evidence",
+    "provenance_failed",
+    "held",
+)
+
+
+class Candidate(SQLModel, table=True):
+    """One opportunity candidate produced by a lens.
+
+    Persisted under one ``session_id``. Rolled forward by Challenger,
+    Synthesizer, and Critic. Read by the SSE-fed prediction board.
+    """
+
+    __tablename__ = "candidates"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: uuid.UUID = Field(nullable=False, index=True)
+    owner_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="user.id",
+        nullable=True,
+        index=True,
+        ondelete="CASCADE",
+    )
+    lens: str = Field(sa_column=Column(Text, nullable=False))
+    statement: str = Field(sa_column=Column(Text, nullable=False))
+    evidence_chunk_ids: list[uuid.UUID] = Field(
+        default_factory=list,
+        sa_column=Column(
+            ARRAY(PostgresUUID(as_uuid=True)), nullable=False, server_default="{}"
+        ),
+    )
+    v_hat: float = Field(default=0.0, nullable=False)
+    c_hat: float = Field(default=0.0, nullable=False)
+    pipeline_steps: list[Any] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default="[]"),
+    )
+    status: str = Field(
+        default="speculative",
+        sa_column=Column(Text, nullable=False, server_default="speculative"),
+    )
+    challenger_verdict: str | None = Field(
+        default=None, sa_column=Column(Text, nullable=True)
+    )
+    dossier_grounded: bool = Field(default=False, nullable=False)
+    provenance_audited: bool = Field(default=False, nullable=False)
+    source_count: int = Field(default=0, nullable=False)
+    reinforces: list[str] = Field(
+        default_factory=list,
+        sa_column=Column(ARRAY(Text), nullable=False, server_default="{}"),
+    )
+    merged_from: list[uuid.UUID] = Field(
+        default_factory=list,
+        sa_column=Column(
+            ARRAY(PostgresUUID(as_uuid=True)), nullable=False, server_default="{}"
+        ),
+    )
+    ahead_of_yc: bool = Field(default=False, nullable=False)
+    pain_owner: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    why_now: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    contradictions: list[Any] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default="[]"),
+    )
+    open_assumptions: list[Any] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default="[]"),
+    )
+    validation_path: list[Any] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default="[]"),
+    )
+    evidence_sources: list[Any] = Field(
+        default_factory=list,
+        sa_column=Column(JSONB, nullable=False, server_default="[]"),
+    )
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+class CandidateScore(SQLModel, table=True):
+    """Per-candidate scoring history (TICKET-062 Critic output)."""
+
+    __tablename__ = "candidate_scores"
+
+    candidate_id: uuid.UUID = Field(
+        foreign_key="candidates.id", primary_key=True, ondelete="CASCADE"
+    )
+    non_obvious: float = Field(default=0.0, nullable=False)
+    grounded: float = Field(default=0.0, nullable=False)
+    actionable: float = Field(default=0.0, nullable=False)
+    v_hat: float = Field(default=0.0, nullable=False)
+    c_hat: float = Field(default=0.0, nullable=False)
+    composite: float = Field(default=0.0, nullable=False)
+    scored_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+class CandidatePublic(SQLModel):
+    """Read model returned by GET /api/v1/sessions/{sid}/candidates."""
+
+    id: uuid.UUID
+    session_id: uuid.UUID
+    lens: str
+    statement: str
+    evidence_chunk_ids: list[uuid.UUID]
+    v_hat: float
+    c_hat: float
+    pipeline_steps: list[Any]
+    status: str
+    challenger_verdict: str | None
+    dossier_grounded: bool
+    provenance_audited: bool
+    source_count: int
+    reinforces: list[str]
+    merged_from: list[uuid.UUID]
+    ahead_of_yc: bool
+    pain_owner: str | None
+    why_now: str | None
+    contradictions: list[Any]
+    open_assumptions: list[Any]
+    validation_path: list[Any]
+    evidence_sources: list[Any]
+    created_at: datetime
+    updated_at: datetime
+
+
+class CandidatesPublic(SQLModel):
+    data: list[CandidatePublic]
+    count: int

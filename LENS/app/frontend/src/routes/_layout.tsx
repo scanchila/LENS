@@ -29,7 +29,7 @@ function Layout() {
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
         </header>
         <main className="flex-1 p-6 md:p-8">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto w-full max-w-[1400px]">
             <Outlet />
           </div>
         </main>

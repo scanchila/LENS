@@ -1,0 +1,47 @@
+{
+  "description": "Gold map: substring of a candidate.statement -> the YC RFS item it matches. Lets the demo score deterministically without an LLM round-trip during the live reveal. Substrings are lowercased; matched via simple `if sub in statement.lower()`.",
+  "matches": [
+    {
+      "statement_substring": "browser-native llm agents",
+      "rfs_item_id": "rfs-005",
+      "match_kind": "direct",
+      "rationale": "Both target browser-native agents with local context."
+    },
+    {
+      "statement_substring": "personal rag",
+      "rfs_item_id": "rfs-007",
+      "match_kind": "direct",
+      "rationale": "Both target private retrieval over personal docs."
+    },
+    {
+      "statement_substring": "real-time data quality for ai training",
+      "rfs_item_id": "rfs-003",
+      "match_kind": "direct",
+      "rationale": "Both target training-data quality at runtime."
+    },
+    {
+      "statement_substring": "vertical compliance copilots",
+      "rfs_item_id": "rfs-002",
+      "match_kind": "direct",
+      "rationale": "Both target SMB compliance."
+    },
+    {
+      "statement_substring": "voice-first ops",
+      "rfs_item_id": "rfs-004",
+      "match_kind": "direct",
+      "rationale": "Both target voice-first field-worker workflows."
+    },
+    {
+      "statement_substring": "open-source agent observability",
+      "rfs_item_id": "rfs-010",
+      "match_kind": "direct",
+      "rationale": "Both target agent observability tooling."
+    },
+    {
+      "statement_substring": "ai-native crm",
+      "rfs_item_id": "rfs-009",
+      "match_kind": "adjacent",
+      "rationale": "Adjacent to AI-native CRM for studios."
+    }
+  ]
+}

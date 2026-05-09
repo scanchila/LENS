@@ -1,0 +1,66 @@
+{
+  "published_at": "2026-05-04",
+  "source": "https://www.ycombinator.com/rfs (curated for hackathon demo; replace with verbatim fetch before public use)",
+  "items": [
+    {
+      "id": "rfs-001",
+      "title": "AI co-scientist tools",
+      "description": "Tools that act as research collaborators, not just retrievers — surface counter-evidence, run sub-experiments, manage citations.",
+      "tags": ["ai", "research"]
+    },
+    {
+      "id": "rfs-002",
+      "title": "Compliance copilots for SMBs",
+      "description": "Vertical compliance tooling for sub-$50M SMBs across verticals (healthcare, fintech, food service).",
+      "tags": ["fintech", "vertical-saas"]
+    },
+    {
+      "id": "rfs-003",
+      "title": "Real-time data quality for AI training",
+      "description": "Pipelines that surface and fix bad training data live; statistical drift, label leakage, silent corruption.",
+      "tags": ["ai-infra", "devtools"]
+    },
+    {
+      "id": "rfs-004",
+      "title": "Voice-first ops for field workers",
+      "description": "Voice-only field workflows for trades and logistics. Hands-busy users; minimal-screen UX.",
+      "tags": ["ai", "vertical"]
+    },
+    {
+      "id": "rfs-005",
+      "title": "Browser-native LLM agents",
+      "description": "Agents running locally in the browser with tab-level context. On-device inference closing the latency gap.",
+      "tags": ["ai", "browser"]
+    },
+    {
+      "id": "rfs-006",
+      "title": "Synthetic-data marketplaces",
+      "description": "Marketplaces for high-quality, licensed synthetic data; especially for regulated verticals.",
+      "tags": ["ai-infra", "data"]
+    },
+    {
+      "id": "rfs-007",
+      "title": "Personal RAG for knowledge workers",
+      "description": "Private retrieval over a person's full document trail. Local-first; zero-server posture.",
+      "tags": ["ai", "productivity"]
+    },
+    {
+      "id": "rfs-008",
+      "title": "Provenance-first content pipelines",
+      "description": "Citations, confidence, and challenge by default. Compliance-grade writing workflows.",
+      "tags": ["ai", "media"]
+    },
+    {
+      "id": "rfs-009",
+      "title": "AI-native CRMs for studios",
+      "description": "Pipeline tools tuned to startup-studio workflows: deal-flow, opportunity briefs, partner review.",
+      "tags": ["saas", "vertical"]
+    },
+    {
+      "id": "rfs-010",
+      "title": "Open-source agent observability",
+      "description": "Tracing, eval, and cost dashboards for agent runs. OSS by default; minimal vendor lock.",
+      "tags": ["ai-infra", "open-source"]
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "description": "Hand-picked candidates that are not in the YC Summer 2026 RFS but are defensible as 'ahead of YC' — i.e. backed by signals that justify partner attention.",
+  "cutoff": "2026-05-03",
+  "items": [
+    {
+      "claim_summary": "Personal RAG over a knowledge worker's full document trail (private; addresses the 'AI is plug-and-play' contradiction founders ship around)",
+      "rationale": "YC RFS-007 covers 'personal RAG' but the contradiction-surfacing angle (vendor claims vs. integration reality) is not in the public RFS. Defensible as a wedge for tooling that targets the integration-pain proxy rather than the abstract retrieval problem.",
+      "signals": [
+        "5 founder interviews citing 6-month integration timelines vs. 'plug-and-play' claims",
+        "HN top post (2026-04) with 980 upvotes reporting the same gap",
+        "arXiv 2026.05678 — 'Browser-native context for personal retrieval' published 2026-04-27"
+      ]
+    },
+    {
+      "claim_summary": "Browser-native LLM agents with tab-level context — applying OS-level scheduler primitives to attention budgets",
+      "rationale": "YC RFS-005 covers 'browser-native LLM agents' but does not call out the OS-scheduler analogy. Cross-domain transfer surfaces a structural pattern (scheduler → attention budget) that none of the public RFS items name.",
+      "signals": [
+        "arXiv 2026.01234 design notes — explicit borrow from OS scheduler patterns",
+        "Stratechery 2026-03 archive on tab-as-context",
+        "HN: 'Shipped a browser agent in 6 weeks' — 4 contradictions in the comments"
+      ]
+    },
+    {
+      "claim_summary": "Real-time data quality for AI training — borrow stream-processing fault-tolerance from finance ETL",
+      "rationale": "YC RFS-003 covers training-data quality. The 'borrow from finance ETL' angle is a defensible specialization the public RFS does not name. Cross-domain pattern transfer.",
+      "signals": [
+        "5 training-pipeline post-mortems on arXiv (2026-Q1) all cite silent corruption",
+        "Stratechery 2026-04 on data-quality budgets",
+        "Finance industry blog posts on ETL fault tolerance (Jepsen-style)"
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { Briefcase, Home, Users } from "lucide-react"
+import { Activity, Home, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -12,9 +12,11 @@ import useAuth from "@/hooks/useAuth"
 import { type Item, Main } from "./Main"
 import { User } from "./User"
 
+const DEMO_SESSION_ID = "00000000-0000-4000-8000-000000000001"
+
 const baseItems: Item[] = [
   { icon: Home, title: "Dashboard", path: "/" },
-  { icon: Briefcase, title: "Items", path: "/items" },
+  { icon: Activity, title: "Prediction board", path: `/board/${DEMO_SESSION_ID}` },
 ]
 
 export function AppSidebar() {
