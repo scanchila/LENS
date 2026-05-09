@@ -844,7 +844,7 @@
               <div class="eyebrow reveal">Latent Evidence and Need Scanner</div>
               <h1 class="reveal">Weak signals. Stronger decisions.</h1>
               <p class="lead reveal">
-                A multi-agent investigation system for evidence-backed opportunity briefs.
+                LENS finds candidate problems, traces the evidence, and kills weak ones early.
               </p>
               <div class="tag-row reveal" aria-label="Presentation topics">
                 <span class="tag accent">Methods</span>
@@ -864,26 +864,26 @@
       <section class="slide" aria-label="Product positioning">
         <div class="slide-content">
           <div class="eyebrow reveal">Positioning</div>
-          <h2 class="reveal">Not an idea generator. A decision-support instrument.</h2>
+          <h2 class="reveal">A research board for opportunity decisions.</h2>
           <div class="grid-3 reveal">
             <div class="panel">
               <div class="number">01</div>
-              <h3>Surface candidates</h3>
-              <p>Find non-obvious but grounded candidate problems from messy public and private corpora.</p>
+              <h3>Find candidates</h3>
+              <p>Pull problem hypotheses from founder calls, papers, forums, market notes, and internal research.</p>
             </div>
             <div class="panel">
               <div class="number">02</div>
-              <h3>Expose provenance</h3>
-              <p>Every claim, score, and status movement must trace back to source spans, lenses, and review events.</p>
+              <h3>Show the trail</h3>
+              <p>Every claim points back to source spans, the lens that found it, and the review step that changed it.</p>
             </div>
             <div class="panel">
               <div class="number">03</div>
               <h3>Kill weak claims</h3>
-              <p>A candidate that dies early is a successful outcome when it saves founder, analyst, or partner time.</p>
+              <p>Bad candidates should fail before they become partner memos or customer-discovery projects.</p>
             </div>
           </div>
           <p class="quote reveal">
-            The paid artifact is not a list of ideas. It is an evidence-backed opportunity brief with assumptions, contradictions, and next validation steps.
+            The output is a review artifact: problem, actor, evidence, contradictions, assumptions, and the next test.
           </p>
         </div>
       </section>
@@ -891,35 +891,35 @@
       <!-- Slide 3: Formal object model -->
       <section class="slide" aria-label="Formal object model">
         <div class="slide-content">
-          <div class="eyebrow reveal">Formal Object</div>
+          <div class="eyebrow reveal">Formal object</div>
           <h2 class="reveal">The core unit is a candidate problem.</h2>
           <p class="lead reveal">
-            A candidate is a hypothesis that a specific actor experiences a costly gap between a current state and a desired state, and that the gap may be tractable, neglected, and worth validating now.
+            A candidate says who has the pain, what gap they face, why it may matter now, and what evidence would change our mind.
           </p>
           <div class="object-chain reveal" aria-label="Source to brief chain">
             <div class="object-node">
               <span class="label">Source</span>
-              <span class="desc">document, post, paper, transcript, dossier</span>
+              <span class="desc">paper, post, transcript, dossier</span>
             </div>
             <div class="object-node">
               <span class="label">Trace</span>
-              <span class="desc">cited span or extracted datum</span>
+              <span class="desc">quoted span or extracted fact</span>
             </div>
             <div class="object-node">
               <span class="label">Claim</span>
-              <span class="desc">atomic proposition with qualifiers</span>
+              <span class="desc">one testable assertion</span>
             </div>
             <div class="object-node">
               <span class="label">Signal</span>
-              <span class="desc">pattern across traces</span>
+              <span class="desc">complaint, gap, shift, analogy</span>
             </div>
             <div class="object-node">
               <span class="label">Candidate</span>
-              <span class="desc">actor, gap, mechanism, assumptions</span>
+              <span class="desc">actor, gap, evidence, assumptions</span>
             </div>
             <div class="object-node">
               <span class="label">Brief</span>
-              <span class="desc">decision artifact with kill criteria</span>
+              <span class="desc">brief with validation tests</span>
             </div>
           </div>
           <code class="formula reveal">c = (actor, current_state, desired_state, gap, proposed_mechanism, evidence_set, assumptions, validation_path)</code>
@@ -929,30 +929,30 @@
       <!-- Slide 4: Theoretical foundations -->
       <section class="slide" aria-label="Theoretical foundations">
         <div class="slide-content">
-          <div class="eyebrow reveal">Theoretical Framework</div>
-          <h2 class="reveal">The theory is deeper than a prioritization checklist.</h2>
+          <div class="eyebrow reveal">Theory</div>
+          <h2 class="reveal">The scoring spine comes from decision theory.</h2>
           <div class="grid-2 reveal">
             <div class="panel">
               <h3>Decision foundations</h3>
               <ul class="list">
-                <li>Multi-attribute utility theory makes tradeoffs explicit.</li>
+                <li>Multi-attribute utility makes tradeoffs visible.</li>
                 <li>Value-focused thinking starts with the user's mandate.</li>
-                <li>Value of information asks which validation action can change the decision.</li>
-                <li>Exploration/exploitation protects strange but grounded candidates from premature optimization.</li>
+                <li>Value of information decides which test deserves budget.</li>
+                <li>Exploration/exploitation keeps odd but sourced candidates alive long enough to inspect.</li>
               </ul>
             </div>
             <div class="panel">
               <h3>Opportunity and evidence foundations</h3>
               <ul class="list">
-                <li>Entrepreneurial opportunity theory keeps actor fit central.</li>
-                <li>Creativity research separates novelty from usefulness and feasibility.</li>
-                <li>Argumentation theory maps claims to grounds, warrants, qualifiers, and rebuttals.</li>
-                <li>Wicked-problem theory keeps assumptions visible.</li>
+                <li>Opportunity theory ties a problem to the actor who can exploit it.</li>
+                <li>Creativity research splits novelty from usefulness and feasibility.</li>
+                <li>Argumentation theory turns claims into grounds, warrants, and rebuttals.</li>
+                <li>Wicked-problem theory keeps the formulation open when the facts are incomplete.</li>
               </ul>
             </div>
           </div>
           <p class="footnote reveal">
-            Operational adapters include ITN/SNT, ODI, GRADE, CHNRI, TRL, RICE, and Heilmeier, but they do not define the candidate.
+            ITN/SNT, ODI, GRADE, CHNRI, TRL, RICE, and Heilmeier are adapters. The candidate definition comes first.
           </p>
         </div>
       </section>
@@ -961,7 +961,7 @@
       <section class="slide" aria-label="Scoring model">
         <div class="slide-content">
           <div class="eyebrow reveal">Scoring</div>
-          <h2 class="reveal">Display a score tuple, not one opaque number.</h2>
+          <h2 class="reveal">Rank with a visible score tuple.</h2>
           <div class="grid-2">
             <div class="panel reveal">
               <code class="formula">ProblemValue(c) = wS*S + wN*N + wT*T + wU*U + wM*M + wO*O + wF*F</code>
@@ -991,7 +991,7 @@
                 <span class="tag">validation priority</span>
               </div>
               <p style="margin-top: 1rem;">
-                Confidence is separate from value. A candidate can be valuable but weakly sourced, or well sourced but not worth pursuing.
+                Value and confidence are different facts. LENS keeps them apart so a thin but exciting claim never reads as validated.
               </p>
             </div>
           </div>
@@ -1002,26 +1002,26 @@
       <section class="slide" aria-label="Weight calibration">
         <div class="slide-content">
           <div class="eyebrow reveal">Calibration</div>
-          <h2 class="reveal">Weights begin explicit, then learn carefully.</h2>
+          <h2 class="reveal">Weights start as policy, then get calibrated.</h2>
           <div class="grid-2">
             <div class="panel reveal">
-              <h3>Manual by default</h3>
+              <h3>User profile first</h3>
               <code class="formula">w_effective = normalize(w_user + lambda * w_learned)</code>
               <p style="margin-top: 1rem;">
-                <code>lambda</code> starts at zero. The organization sees its stated mandate before any learned adjustment.
+                <code>lambda</code> starts at zero. The user's mandate is visible before the system applies history.
               </p>
             </div>
             <div class="panel reveal">
-              <h3>Staged learning targets</h3>
-              <div class="status-line"><strong>Stage 1</strong><span class="muted">predict human verdicts</span></div>
-              <div class="status-line"><strong>Stage 2</strong><span class="muted">predict validation outcomes</span></div>
-              <div class="status-line"><strong>Stage 3</strong><span class="muted">predict downstream portfolio outcomes</span></div>
+              <h3>Learning targets</h3>
+              <div class="status-line"><strong>Stage 1</strong><span class="muted">human verdicts</span></div>
+              <div class="status-line"><strong>Stage 2</strong><span class="muted">validation results</span></div>
+              <div class="status-line"><strong>Stage 3</strong><span class="muted">portfolio outcomes</span></div>
             </div>
           </div>
           <div class="grid-3 reveal">
-            <div class="panel"><h3>Inspectable</h3><p>Show user weight, learned adjustment, effective weight, and evidence.</p></div>
-            <div class="panel"><h3>Versioned</h3><p>Every calibration update must be reproducible from historical decisions.</p></div>
-            <div class="panel"><h3>Constrained</h3><p>Sparse data recommends changes; it does not silently override a mandate.</p></div>
+            <div class="panel"><h3>Visible</h3><p>Show user weight, learned adjustment, final weight, and the examples behind it.</p></div>
+            <div class="panel"><h3>Reproducible</h3><p>Each calibration update is tied to a saved decision set.</p></div>
+            <div class="panel"><h3>Limited</h3><p>Sparse history can suggest changes. The mandate stays in control.</p></div>
           </div>
         </div>
       </section>
@@ -1030,30 +1030,30 @@
       <section class="slide" aria-label="Investigation method">
         <div class="slide-content">
           <div class="eyebrow reveal">Method</div>
-          <h2 class="reveal">Lenses propose. Adversaries attack. Synthesis preserves traceability.</h2>
+          <h2 class="reveal">The run applies pressure before agreement.</h2>
           <div class="grid-4 reveal">
             <div class="panel">
               <h3>Cross-domain transfer</h3>
-              <p>Abstract a domain friction into structural terms, then match it to CS/AI principles.</p>
+              <p>Rewrite a domain pain as a structure, then compare it with CS/AI patterns.</p>
             </div>
             <div class="panel">
               <h3>Contradiction surfacing</h3>
-              <p>Look for gaps between stated needs, actual behavior, incentives, and constraints.</p>
+              <p>Compare stated needs with behavior, incentives, and constraints.</p>
             </div>
             <div class="panel">
               <h3>Distance from focus</h3>
-              <p>Scan adjacent domains where a signal is present but not yet consensus.</p>
+              <p>Search nearby domains where the signal appears before the market names it.</p>
             </div>
             <div class="panel">
               <h3>Novelty search</h3>
-              <p>Keep high-signal anomalies alive long enough to become stepping stones.</p>
+              <p>Keep odd, sourced anomalies around until the Challenger has attacked them.</p>
             </div>
           </div>
           <div class="pipeline reveal">
             <div class="stage"><h3>Scan</h3><p>Retrieve traces</p></div>
             <div class="stage"><h3>Propose</h3><p>Candidate gaps</p></div>
             <div class="stage"><h3>Challenge</h3><p>Attack claims</p></div>
-            <div class="stage"><h3>Synthesize</h3><p>Merge and rank</p></div>
+            <div class="stage"><h3>Merge</h3><p>Deduplicate</p></div>
             <div class="stage"><h3>Brief</h3><p>Validation path</p></div>
           </div>
         </div>
@@ -1063,7 +1063,7 @@
       <section class="slide" aria-label="System architecture">
         <div class="slide-content">
           <div class="eyebrow reveal">Architecture</div>
-          <h2 class="reveal">Fast orchestration and slow evidence work are separated.</h2>
+          <h2 class="reveal">Live runs stay fast. Deep evidence runs in the background.</h2>
           <div class="architecture reveal">
             <div class="arch-column">
               <div class="arch-box"><span class="arch-title">Corpus ingestion</span><span class="arch-caption">parse, chunk, embed, extract relations</span></div>
@@ -1072,13 +1072,13 @@
             </div>
             <div class="arch-column">
               <div class="arch-box highlight"><span class="arch-title">Real-time orchestrator</span><span class="arch-caption">Claude Agent SDK, sub-agents, tools, cost caps</span></div>
-              <div class="arch-box highlight"><span class="arch-title">Lens-Proposers + Challenger + Skeptic</span><span class="arch-caption">generate, attack, audit, synthesize</span></div>
-              <div class="arch-box highlight"><span class="arch-title">Streaming board</span><span class="arch-caption">state changes, confidence movement, diff feed</span></div>
+              <div class="arch-box highlight"><span class="arch-title">Lens-Proposers + Challenger + Skeptic</span><span class="arch-caption">propose, attack, audit, merge</span></div>
+              <div class="arch-box highlight"><span class="arch-title">Streaming board</span><span class="arch-caption">candidate events, confidence movement, diff feed</span></div>
             </div>
             <div class="arch-column">
-              <div class="arch-box"><span class="arch-title">CAR evidence tickets</span><span class="arch-caption">slow web, academic, messy-source research</span></div>
+              <div class="arch-box"><span class="arch-title">CAR evidence tickets</span><span class="arch-caption">web, academic, and messy-source research</span></div>
               <div class="arch-box"><span class="arch-title">Dossier ingest</span><span class="arch-caption">structured Markdown into Postgres + AGE</span></div>
-              <div class="arch-box"><span class="arch-title">Dirty-set re-eval</span><span class="arch-caption">new evidence triggers targeted re-ranking</span></div>
+              <div class="arch-box"><span class="arch-title">Dirty-set re-eval</span><span class="arch-caption">new evidence re-ranks only affected candidates</span></div>
             </div>
           </div>
         </div>
@@ -1088,14 +1088,14 @@
       <section class="slide" aria-label="Agent roles and tools">
         <div class="slide-content">
           <div class="eyebrow reveal">Agent Runtime</div>
-          <h2 class="reveal">Framework-agnostic roles, narrow tools, auditable transcripts.</h2>
+          <h2 class="reveal">Each agent has a job, a tool budget, and a transcript.</h2>
           <div class="matrix reveal" role="table" aria-label="Agent role matrix">
             <div class="head">Role</div><div class="head">Proposes</div><div class="head">Attacks</div><div class="head">Audits</div><div class="head">Output</div>
-            <div class="head">Orchestrator</div><div class="yes">run plan</div><div class="risk">budget</div><div class="yes">state</div><div>session events</div>
+            <div class="head">Orchestrator</div><div class="yes">run plan</div><div class="risk">budget</div><div class="yes">state</div><div>events</div>
             <div class="head">Lens-Proposer</div><div class="yes">candidates</div><div></div><div>sources</div><div>candidate list</div>
             <div class="head">Challenger</div><div></div><div class="yes">claims</div><div>risks</div><div>kill notes</div>
             <div class="head">Skeptic</div><div></div><div class="risk">hallucination</div><div class="yes">provenance</div><div>audit result</div>
-            <div class="head">Synthesizer</div><div class="yes">merges</div><div></div><div class="yes">cross-lens</div><div>ranked set</div>
+            <div class="head">Synthesizer</div><div class="yes">merges</div><div></div><div class="yes">cross-lens</div><div>ranking</div>
             <div class="head">Critic</div><div></div><div class="yes">score stress</div><div class="yes">criteria</div><div>review score</div>
           </div>
           <div class="tag-row reveal">
@@ -1112,7 +1112,7 @@
       <section class="slide" aria-label="Storage and provenance">
         <div class="slide-content">
           <div class="eyebrow reveal">Persistence</div>
-          <h2 class="reveal">Postgres is the source of truth; provenance is queryable.</h2>
+          <h2 class="reveal">Postgres stores the run. AGE stores the reasoning trail.</h2>
           <div class="grid-2">
             <div class="storage-diagram reveal" aria-label="Storage and provenance diagram">
               <div class="storage-row">
@@ -1126,7 +1126,7 @@
                 <div class="edge-chip">claim -> candidate</div>
               </div>
               <div class="query-panel">
-                <h3>Queries the product needs</h3>
+                <h3>Questions the graph answers</h3>
                 <div class="query-line">Which sources support this candidate?</div>
                 <div class="query-line">Which claims are unsupported or contradicted?</div>
                 <div class="query-line">Which candidates share evidence or dependencies?</div>
@@ -1134,12 +1134,12 @@
               </div>
             </div>
             <div class="panel reveal">
-              <h3>One database, three workloads</h3>
+              <h3>Why this storage split</h3>
               <ul class="list">
-                <li><strong>Relational:</strong> sessions, runs, transcripts, scores, calibration, lifecycle events.</li>
-                <li><strong>Vector:</strong> semantic retrieval over uploaded and curated documents.</li>
-                <li><strong>Graph:</strong> claim to source, candidate to evidence, principle to analogy.</li>
-                <li><strong>Object storage:</strong> MinIO keeps raw uploads out of application tables.</li>
+                <li><strong>Relational:</strong> sessions, runs, scores, calibration, lifecycle events.</li>
+                <li><strong>Vector:</strong> retrieval over uploaded and curated documents.</li>
+                <li><strong>Graph:</strong> source to claim, claim to candidate, principle to analogy.</li>
+                <li><strong>Object storage:</strong> MinIO holds raw uploads.</li>
               </ul>
             </div>
           </div>
@@ -1150,30 +1150,30 @@
       <section class="slide" aria-label="Product workflow">
         <div class="slide-content">
           <div class="eyebrow reveal">Workflow</div>
-          <h2 class="reveal">Watch candidates appear, move, merge, and die.</h2>
+          <h2 class="reveal">A good run changes the board.</h2>
           <div class="grid-2">
             <div class="mini-board reveal">
               <div class="candidate-card">
                 <div class="candidate-top"><span class="candidate-title">Complaint-shaped workflow gap</span><span class="tag warn">supported</span></div>
-                <span class="candidate-meta">4 sources, cross-domain lens, confidence rising</span>
+                <span class="candidate-meta">4 sources, cross-domain lens, confidence up</span>
               </div>
               <div class="candidate-card">
                 <div class="candidate-top"><span class="candidate-title">Dossier-backed infrastructure wedge</span><span class="tag accent">ready_to_validate</span></div>
-                <span class="candidate-meta">12 sources, Challenger held, next interviews queued</span>
+                <span class="candidate-meta">12 sources, survived Challenger, interviews queued</span>
               </div>
               <div class="candidate-card killed">
                 <div class="candidate-top"><span class="candidate-title">Plausible but shallow market idea</span><span class="tag danger">killed</span></div>
-                <span class="candidate-meta">weak urgency, duplicated by incumbents, no clear actor pain</span>
+                <span class="candidate-meta">weak urgency, incumbent overlap, no clear pain owner</span>
               </div>
             </div>
             <div class="panel reveal">
               <h3>Lifecycle states</h3>
               <div class="pipeline" style="grid-template-columns: 1fr;">
-                <div class="stage"><strong>speculative</strong><p>generated but thinly supported</p></div>
-                <div class="stage"><strong>supported</strong><p>evidence exists from one or more sources</p></div>
-                <div class="stage"><strong>challenged</strong><p>adversarial review records objections</p></div>
-                <div class="stage"><strong>ready_to_validate</strong><p>strong enough for human validation spend</p></div>
-                <div class="stage killed"><strong>killed</strong><p>failed on evidence, urgency, duplication, or actionability</p></div>
+                <div class="stage"><strong>speculative</strong><p>thin support</p></div>
+                <div class="stage"><strong>supported</strong><p>source-backed</p></div>
+                <div class="stage"><strong>challenged</strong><p>objections recorded</p></div>
+                <div class="stage"><strong>ready_to_validate</strong><p>ready for interviews</p></div>
+                <div class="stage killed"><strong>killed</strong><p>failed evidence or urgency</p></div>
               </div>
             </div>
           </div>
@@ -1184,19 +1184,19 @@
       <section class="slide" aria-label="Benchmark and demo proof">
         <div class="slide-content">
           <div class="eyebrow reveal">Evaluation</div>
-          <h2 class="reveal">YC RFS prediction gives the system a falsifiable benchmark.</h2>
+          <h2 class="reveal">YC RFS gives us a held-out test.</h2>
           <div class="grid-2">
             <div class="panel reveal">
               <h3>Method</h3>
               <ul class="list">
-                <li>Use only pre-cutoff public and private source material.</li>
-                <li>Generate RFS-style candidate areas with provenance.</li>
-                <li>Reveal held-out YC RFS list after prediction.</li>
-                <li>Score direct matches, adjacent matches, misses, excess, and provenance quality.</li>
+                <li>Use only source material available before the cutoff date.</li>
+                <li>Generate RFS-style candidate areas with source traces.</li>
+                <li>Reveal the held-out YC list after prediction.</li>
+                <li>Score matches, misses, excess predictions, and provenance quality.</li>
               </ul>
             </div>
             <div class="panel reveal">
-              <h3>Demo curve</h3>
+              <h3>Expected demo curve</h3>
               <div class="benchmark-chart" aria-label="Precision improves by evidence stage">
                 <div class="chart-bar"><div class="chart-fill" style="height: 28%;"></div><span class="chart-label">prior</span></div>
                 <div class="chart-bar"><div class="chart-fill" style="height: 45%;"></div><span class="chart-label">messy signals</span></div>
@@ -1206,7 +1206,7 @@
             </div>
           </div>
           <p class="footnote reveal">
-            The interesting output is not only matching YC. It is also finding defensible excess predictions: grounded opportunities absent from the published list.
+            Matching YC is only one test. The better test is whether excess predictions have enough evidence to deserve review.
           </p>
         </div>
       </section>
@@ -1214,24 +1214,24 @@
       <!-- Slide 13: Current build focus -->
       <section class="slide" aria-label="Current build focus">
         <div class="slide-content">
-          <div class="eyebrow reveal">Build Focus</div>
-          <h2 class="reveal">The next usable system is an investigation board with auditable evidence flow.</h2>
+          <div class="eyebrow reveal">Build focus</div>
+          <h2 class="reveal">The next milestone is a board people can argue with.</h2>
           <div class="grid-3 reveal">
             <div class="panel">
               <h3>Phase 0 foundation</h3>
-              <p>FastAPI, React, Docker Compose, pgvector, Apache AGE, MinIO, agent runtime interfaces, and adapter parity.</p>
+              <p>FastAPI, React, Docker Compose, pgvector, Apache AGE, MinIO, agent interfaces, and adapter parity.</p>
             </div>
             <div class="panel">
               <h3>End-to-end loop</h3>
-              <p>Corpus ingestion, hybrid search, cross-domain lens, Challenger/Skeptic, candidate board, and provenance display.</p>
+              <p>Ingest a corpus, retrieve traces, run one lens, attack the candidates, and show the evidence.</p>
             </div>
             <div class="panel">
               <h3>Demo proof</h3>
-              <p>Streaming diff feed, CAR dossier panel, lifecycle state changes, YC benchmark, and final opportunity brief.</p>
+              <p>Diff feed, CAR dossier panel, lifecycle changes, YC benchmark, and one finished brief.</p>
             </div>
           </div>
           <p class="quote reveal">
-            LENS succeeds when a team can say: "I know why this candidate survived, why that one died, and what evidence would change our mind."
+            The standard is simple: a reviewer can explain why one candidate survived, why another died, and what evidence would reverse the call.
           </p>
         </div>
       </section>

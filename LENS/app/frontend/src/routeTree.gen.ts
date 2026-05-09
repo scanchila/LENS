@@ -18,6 +18,7 @@ import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutLensSessionsRouteImport } from './routes/_layout/lens-sessions'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutLensSessionsIndexRouteImport } from './routes/_layout/lens-sessions.index'
 import { Route as LayoutLensSessionsSessionIdRouteImport } from './routes/_layout/lens-sessions.$sessionId'
 import { Route as LayoutBoardSessionIdRouteImport } from './routes/_layout/board.$sessionId'
 
@@ -65,6 +66,11 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutLensSessionsIndexRoute = LayoutLensSessionsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LayoutLensSessionsRoute,
+} as any)
 const LayoutLensSessionsSessionIdRoute =
   LayoutLensSessionsSessionIdRouteImport.update({
     id: '/$sessionId',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof LayoutSettingsRoute
   '/board/$sessionId': typeof LayoutBoardSessionIdRoute
   '/lens-sessions/$sessionId': typeof LayoutLensSessionsSessionIdRoute
+  '/lens-sessions/': typeof LayoutLensSessionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -95,11 +102,11 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
-  '/lens-sessions': typeof LayoutLensSessionsRouteWithChildren
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
   '/board/$sessionId': typeof LayoutBoardSessionIdRoute
   '/lens-sessions/$sessionId': typeof LayoutLensSessionsSessionIdRoute
+  '/lens-sessions': typeof LayoutLensSessionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -114,6 +121,7 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/board/$sessionId': typeof LayoutBoardSessionIdRoute
   '/_layout/lens-sessions/$sessionId': typeof LayoutLensSessionsSessionIdRoute
+  '/_layout/lens-sessions/': typeof LayoutLensSessionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -128,6 +136,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/board/$sessionId'
     | '/lens-sessions/$sessionId'
+    | '/lens-sessions/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -135,11 +144,11 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
-    | '/lens-sessions'
     | '/settings'
     | '/'
     | '/board/$sessionId'
     | '/lens-sessions/$sessionId'
+    | '/lens-sessions'
   id:
     | '__root__'
     | '/_layout'
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/_layout/board/$sessionId'
     | '/_layout/lens-sessions/$sessionId'
+    | '/_layout/lens-sessions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -228,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/lens-sessions/': {
+      id: '/_layout/lens-sessions/'
+      path: '/'
+      fullPath: '/lens-sessions/'
+      preLoaderRoute: typeof LayoutLensSessionsIndexRouteImport
+      parentRoute: typeof LayoutLensSessionsRoute
+    }
     '/_layout/lens-sessions/$sessionId': {
       id: '/_layout/lens-sessions/$sessionId'
       path: '/$sessionId'
@@ -247,10 +264,12 @@ declare module '@tanstack/react-router' {
 
 interface LayoutLensSessionsRouteChildren {
   LayoutLensSessionsSessionIdRoute: typeof LayoutLensSessionsSessionIdRoute
+  LayoutLensSessionsIndexRoute: typeof LayoutLensSessionsIndexRoute
 }
 
 const LayoutLensSessionsRouteChildren: LayoutLensSessionsRouteChildren = {
   LayoutLensSessionsSessionIdRoute: LayoutLensSessionsSessionIdRoute,
+  LayoutLensSessionsIndexRoute: LayoutLensSessionsIndexRoute,
 }
 
 const LayoutLensSessionsRouteWithChildren =
