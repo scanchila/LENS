@@ -178,3 +178,35 @@ class SessionNote(SQLModel, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
         nullable=False,
     )
+
+
+# ---------------------------------------------------------------------------
+# Agent runtime: pending user questions (TICKET-042)
+# ---------------------------------------------------------------------------
+
+
+class PendingUserQuestion(SQLModel, table=True):
+    __tablename__ = "pending_user_questions"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    session_id: uuid.UUID = Field(nullable=False, index=True)
+    question: str = Field(sa_column=Column(Text, nullable=False))
+    asked_by_agent: str = Field(sa_column=Column(Text, nullable=False))
+    asked_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+    answer: str | None = Field(default=None, sa_column=Column(Text, nullable=True))
+    answered_at: datetime | None = Field(
+        default=None,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=True,
+    )
+
+
+class AnswerQuestionRequest(SQLModel):
+    """Request body for POST /api/v1/sessions/{session_id}/answer-question."""
+
+    question_id: uuid.UUID
+    answer: str
