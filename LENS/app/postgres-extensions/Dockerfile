@@ -2,7 +2,7 @@
 # Pinned to PG16 for AGE 1.5.0 stability; bump after AGE PG17/PG18 releases stabilize.
 FROM postgres:16-bookworm
 
-ARG AGE_VERSION=PG16/v1.5.0-rc0
+ARG AGE_VERSION=PG16/1.5.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
